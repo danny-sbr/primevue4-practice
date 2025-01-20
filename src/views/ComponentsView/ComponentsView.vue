@@ -1,3 +1,3 @@
 <script setup></script>
-<template></template>
+<template>ComponentsView</template>
 <style scoped></style>
