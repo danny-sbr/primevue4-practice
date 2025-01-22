@@ -90,6 +90,9 @@ importers:
       markdown-it-mark:
         specifier: ^4.0.0
         version: 4.0.0
+      markdown-it-prism:
+        specifier: ^2.3.0
+        version: 2.3.0
       markdown-it-sub:
         specifier: ^2.0.0
         version: 2.0.0
@@ -2197,6 +2200,10 @@ packages:
 
   markdown-it-mark@4.0.0:
     resolution: {integrity: sha512-YLhzaOsU9THO/cal0lUjfMjrqSMPjjyjChYM7oyj4DnyaXEzA8gnW6cVJeyCrCVeyesrY2PlEdUYJSPFYL4Nkg==}
+
+  markdown-it-prism@2.3.0:
+    resolution: {integrity: sha512-ePtHY80gZyeje4bn3R3SL0jpd1C9HFaYffJW2Ma0YD+tspqa2v9TuVwUyFwboFu4jnFNcO8oPQROgbcYJbmBvw==}
+    engines: {node: '>=6.0.0'}
 
   markdown-it-sub@2.0.0:
     resolution: {integrity: sha512-iCBKgwCkfQBRg2vApy9vx1C1Tu6D8XYo8NvevI3OlwzBRmiMtsJ2sXupBgEA7PPxiDwNni3qIUkhZ6j5wofDUA==}
@@ -5434,6 +5441,10 @@ snapshots:
   markdown-it-ins@4.0.0: {}
 
   markdown-it-mark@4.0.0: {}
+
+  markdown-it-prism@2.3.0:
+    dependencies:
+      prismjs: 1.29.0
 
   markdown-it-sub@2.0.0: {}
 
