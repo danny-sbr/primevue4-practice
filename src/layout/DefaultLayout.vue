@@ -8,11 +8,32 @@ const items = ref([
   },
   {
     label: 'Components',
-    icon: 'pi pi-search',
+    icon: 'pi pi-microchip',
     items: [
       {
         label: 'Menu',
         route: '/components/menu',
+      },
+      {
+        label: 'Tabs',
+        route: '/components/tabs',
+      },
+    ],
+  },
+  {
+    label: 'Theme',
+    icon: 'pi pi-fw pi-palette',
+    items: [
+      {
+        label: 'Theme',
+        route: '/theme/',
+      },
+      {
+        separator: true,
+      },
+      {
+        label: 'Styled Mode',
+        route: '/theme/styled-mode',
       },
     ],
   },
@@ -22,8 +43,9 @@ const items = ref([
 <template>
   <header>
     <Menubar :model="items">
-      <template #start>我是 ICON
-         </template>
+      <template #start>
+        <i class="pi pi-prime"></i>
+      </template>
       <template #item="{ item, props, hasSubmenu }">
         <router-link
           v-if="item.route"
@@ -42,6 +64,7 @@ const items = ref([
           :target="item.target"
           v-bind="props.action"
         >
+          <span v-if="item.icon"> <i :class="item.icon"></i></span>
           <span>{{ item.label }}</span>
           <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
         </a>
