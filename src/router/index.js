@@ -10,6 +10,22 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: '/theme',
+      children: [
+        {
+          path: '',
+          name: 'theme',
+          component: () => import('../views/ThemeView/ThemeView.vue'),
+        },
+        {
+          path: 'styled-mode',
+          name: 'styled-mode',
+          component: () =>
+            import('../views/ThemeView/StyledModeView/StyledModeView.vue'),
+        },
+      ],
+    },
+    {
       path: '/components',
       children: [
         {
@@ -22,6 +38,12 @@ const router = createRouter({
           name: 'menu',
           component: () =>
             import('../views/ComponentsView/MenuView/MenuView.vue'),
+        },
+        {
+          path: 'tabs',
+          name: 'tabs',
+          component: () =>
+            import('../views/ComponentsView/TabsView/TabsView.vue'),
         },
       ],
     },
