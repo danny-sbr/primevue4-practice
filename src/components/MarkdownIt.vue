@@ -122,14 +122,6 @@ const source = ref(props.source)
   font-family: monospace;
 }
 
-/* :deep(pre) {
-  background-color: #f5f5f5;
-  padding: 1em;
-  border-radius: 5px;
-  overflow-x: auto;
-  margin-bottom: 1em;
-} */
-
 :deep(blockquote) {
   border-left: 4px solid #ddd;
   padding-left: 1em;
