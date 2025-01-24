@@ -5,6 +5,7 @@ const items = ref([
   {
     label: 'Home',
     icon: 'pi pi-home',
+    route: '/',
   },
   {
     label: 'Components',
