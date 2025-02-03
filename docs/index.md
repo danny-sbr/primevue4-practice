@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "primevue4-practice"
+  name: "primevue4-practice-doc"
   text: "primevue4 practice description"
   tagline: My great project tagline
   actions:
