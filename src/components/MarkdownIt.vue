@@ -16,6 +16,8 @@ import MarkdownItSub from 'markdown-it-sub'
 import MarkdownItSup from 'markdown-it-sup'
 import MarkdownItPrism from 'markdown-it-prism'
 
+import 'prismjs/components/prism-javascript'
+
 const lineNumbers = (originalHighlight) => {
   return (text, lang) => {
     const html = originalHighlight(text, lang)
