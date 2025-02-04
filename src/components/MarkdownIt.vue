@@ -16,19 +16,10 @@ import MarkdownItSub from 'markdown-it-sub'
 import MarkdownItSup from 'markdown-it-sup'
 import MarkdownItPrism from 'markdown-it-prism'
 
-import 'prismjs/components/prism-javascript'
-
-const lineNumbers = (originalHighlight) => {
-  return (text, lang) => {
-    const html = originalHighlight(text, lang)
-    // Similar to: https://github.com/11ty/eleventy-plugin-syntaxhighlight/blob/7b7b547fff07f2e60d91c0a7ed3bba1938dbc057/src/markdownSyntaxHighlightOptions.js#L28
-    const lines = html.split('\n').slice(0, -1)
-
-    return lines
-      .map((line) => `<span class="highlight-line">${line}</span>`)
-      .join('\n')
-  }
-}
+// 引入 Prism 的 CSS 樣式檔案
+// 這個檔案包含了程式碼語法高亮的顏色定義
+// 如果沒有引入這個檔案，程式碼區塊就不會有顏色標示
+import 'prismjs/themes/prism.css'
 
 const markdown = new MarkdownIt({
   html: true,
@@ -43,11 +34,22 @@ const markdown = new MarkdownIt({
   .use(MarkdownItSub)
   .use(MarkdownItSup)
   .use(MarkdownItPrism)
-
 // https://github.com/jGleitz/markdown-it-prism/issues/1
 // https://github.com/andreas-mausch/eleventy-sample/blob/82cca7f7166cb8147d4681d0ba6e7b720f1889ac/eleventy/markdown.js
 // Unfortunately, inline code blocks are not processed by default, so we need this.
 // Compare to https://github.com/11ty/eleventy-plugin-syntaxhighlight/issues/38#issuecomment-1022305948
+
+const lineNumbers = (originalHighlight) => {
+  return (text, lang) => {
+    const html = originalHighlight(text, lang)
+    // Similar to: https://github.com/11ty/eleventy-plugin-syntaxhighlight/blob/7b7b547fff07f2e60d91c0a7ed3bba1938dbc057/src/markdownSyntaxHighlightOptions.js#L28
+    const lines = html.split('\n').slice(0, -1)
+
+    return lines
+      .map((line) => `<span class="highlight-line">${line}</span>`)
+      .join('\n')
+  }
+}
 
 markdown.renderer.rules.code_inline = (tokens, idx, { langPrefix = '' }) => {
   const token = tokens[idx]
