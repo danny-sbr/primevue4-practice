@@ -38,6 +38,16 @@ const items = ref([
       },
     ],
   },
+  {
+    label: 'PassThrough',
+    icon: 'pi pi-arrow-right-arrow-left',
+    items: [
+      {
+        label: 'PassThrough',
+        route: '/pass-through',
+      },
+    ],
+  },
 ])
 </script>
 
