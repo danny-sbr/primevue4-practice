@@ -10,6 +10,17 @@ onMounted(() => {
   window.Prism.manual = true
   Prism.highlightAll()
 })
+
+/**
+ * 在 MarkdownIt 元件中也使用了 Prism
+ * 為了避免此元件的 window.Prism 和 line-numbers 插件
+ * 影響到 MarkdownIt 元件中的 MarkdownItPrism 插件
+ * 需要將 Prism.manual 設定回 false
+ * 以還原先前的設定
+ */
+onBeforeMount(() => {
+  window.Prism.manual = false
+})
 </script>
 
 <template>

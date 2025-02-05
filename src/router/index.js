@@ -47,6 +47,11 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/pass-through',
+      name: 'pass-through',
+      component: () => import('../views/PassThroughView/PassThroughView.vue'),
+    },
   ],
 })
 

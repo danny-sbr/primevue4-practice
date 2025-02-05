@@ -1,5 +1,5 @@
 <template>
-  <div v-html="markdown.render(source)" />
+  <div v-html="markdown.render(source)"></div>
 </template>
 
 <script setup>
@@ -65,8 +65,6 @@ const props = defineProps({
     default: '',
   },
 })
-
-const source = ref(props.source)
 </script>
 
 <style scoped>
