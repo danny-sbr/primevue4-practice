@@ -15,6 +15,8 @@ import MarkdownItMark from 'markdown-it-mark'
 import MarkdownItSub from 'markdown-it-sub'
 import MarkdownItSup from 'markdown-it-sup'
 import MarkdownItPrism from 'markdown-it-prism'
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-jsx';
 
 // 引入 Prism 的 CSS 樣式檔案
 // 這個檔案包含了程式碼語法高亮的顏色定義
