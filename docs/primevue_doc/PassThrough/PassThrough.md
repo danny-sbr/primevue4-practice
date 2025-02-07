@@ -34,7 +34,7 @@ PrimeVue 團隊在 **PrimeTV YouTube 頻道** 提供了兩部教學影片，幫�
 
 > **建議觀看！** 這些影片能幫助你更快速掌握元件自訂化技巧。 🎬
 
-<iframe width="889" height="500" src="https://www.youtube.com/embed/CvQj-zDRTFw?list=PLC9bp-OHi-Wk9fMhxOM1u6Si82i6AxqUM" title="Introduction to Pass Through Props Feature of PrimeVue" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe style="aspect-ratio: 16/9; width: 100%;" src="https://www.youtube.com/embed/CvQj-zDRTFw?list=PLC9bp-OHi-Wk9fMhxOM1u6Si82i6AxqUM" title="Introduction to Pass Through Props Feature of PrimeVue" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 ```
 
 
