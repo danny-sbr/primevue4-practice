@@ -65,37 +65,35 @@ const items = ref([
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl px-4 py-8">
-    <h2 class="mb-6 text-2xl font-bold text-gray-800">選單列（Menubar）元件</h2>
+  <h2 class="mb-6 text-2xl font-bold text-gray-800">選單列（Menubar）元件</h2>
 
-    <p class="mb-8 leading-relaxed text-gray-600">
-      Menubar 提供項目自訂功能，透過項目範本（item template）接收來自模型的
-      menuitem 實例作為參數。此外，還提供名為 start 和 end
-      的額外插槽，可用於在選單之前或之後嵌入內容。
-    </p>
+  <p class="mb-8 leading-relaxed text-gray-600">
+    Menubar 提供項目自訂功能，透過項目範本（item template）接收來自模型的
+    menuitem 實例作為參數。此外，還提供名為 start 和 end
+    的額外插槽，可用於在選單之前或之後嵌入內容。
+  </p>
 
-    <h3 class="mb-4 text-xl font-semibold text-gray-700">使用範例：</h3>
+  <h3 class="mb-4 text-xl font-semibold text-gray-700">使用範例：</h3>
 
-    <CodeBlock>
-      {{ MenuViewCodeString }}
-    </CodeBlock>
+  <CodeBlock>
+    {{ MenuViewCodeString }}
+  </CodeBlock>
 
-    <p class="mb-4 text-gray-600">以下是實際使用 Menubar 元件的展示結果：</p>
+  <p class="mb-4 text-gray-600">以下是實際使用 Menubar 元件的展示結果：</p>
 
-    <Menubar :model="items">
-      <!-- 選單前插槽 -->
-      <template #start> "我是放在選單前" </template>
+  <Menubar :model="items">
+    <!-- 選單前插槽 -->
+    <template #start> "我是放在選單前" </template>
 
-      <!-- 自訂項目範本 -->
-      <template #item="{ item }">
-        <i :class="item.icon"></i>
-        <span>{{ item.label }}</span>
-      </template>
+    <!-- 自訂項目範本 -->
+    <template #item="{ item }">
+      <i :class="item.icon"></i>
+      <span>{{ item.label }}</span>
+    </template>
 
-      <!-- 選單後插槽 -->
-      <template #end> "我是放在選單後" </template>
-    </Menubar>
-  </div>
+    <!-- 選單後插槽 -->
+    <template #end> "我是放在選單後" </template>
+  </Menubar>
 </template>
 
 <style scoped></style>
