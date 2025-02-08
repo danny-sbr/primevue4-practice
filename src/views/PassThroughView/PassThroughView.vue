@@ -1,6 +1,15 @@
 <script setup>
 import MarkdownIt from '@/components/MarkdownIt.vue'
 import PassThroughExplain from './markdown/PassThroughExplain.md'
+import { ref } from 'vue'
+
+const panelPt = ref({
+  hooks: {
+    onMounted: () => console.log('Panel 已掛載'),
+    onUpdated: () => console.log('Panel 已更新'),
+    onUnmounted: () => console.log('Panel 已卸載'),
+  },
+})
 
 const onHeaderHover = (options) => {
   console.log('🔵 滑鼠進入標題區塊！')
@@ -65,6 +74,8 @@ const count = ref(0)
     }"
     >按鈕</Button
   >
+
+  <Panel header="Header" :pt="panelPt"> 生命週期展示 </Panel>
   <MarkdownIt :source="PassThroughExplain" />
 </template>
 <style scoped></style>

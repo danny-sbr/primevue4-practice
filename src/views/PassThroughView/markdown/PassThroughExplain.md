@@ -391,3 +391,34 @@ const count = ref(0)
 </template>
 <style scoped></style>
 ```
+
+## 生命週期 Hook
+
+元件的生命週期掛鉤可以透過 `hooks` 屬性來註冊回呼函式。這讓我們能夠在元件生命週期的不同階段執行自訂的程式碼。
+
+支援的生命週期掛鉤包含：
+
+- `onBeforeCreate`：元件建立前
+- `onCreated`：元件建立後
+- `onBeforeMount`：元件掛載前
+- `onMounted`：元件掛載後
+- `onBeforeUpdate`：元件更新前
+- `onUpdated`：元件更新後
+- `onBeforeUnmount`：元件卸載前
+- `onUnmounted`：元件卸載後
+
+更多詳細資訊可以參考官方文件 [vue 的官方文件](https://vuejs.org/api/composition-api-lifecycle.html)
+使用範例：
+
+```html
+<script setup>
+const panelPt = ref({
+  hooks: {
+    onMounted: () => console.log('Panel 已掛載'),
+  },
+})
+</script>
+<template>
+  <Panel header="Header" :pt="panelPt"> 生命週期展示 </Panel>
+</template>
+```
