@@ -10,8 +10,9 @@ const panelPt = ref({
     onUnmounted: () => console.log('Panel 已卸載'),
   },
 })
-
-const onHeaderHover = (options) => {
+/** @type {import('./PassThroughView.d').HeaderHoverHandler} */
+const onHeaderHover = (event) => {
+  console.log(event)
   console.log('🔵 滑鼠進入標題區塊！')
 }
 const count = ref(0)
