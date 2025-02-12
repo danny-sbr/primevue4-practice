@@ -45,6 +45,12 @@ const router = createRouter({
           component: () =>
             import('../views/ComponentsView/TabsView/TabsView.vue'),
         },
+        {
+          path: 'data-table',
+          name: 'data-table',
+          component: () =>
+            import('../views/ComponentsView/DataTableView/DataTableView.vue'),
+        },
       ],
     },
     {
