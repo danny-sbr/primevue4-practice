@@ -84,18 +84,19 @@ const props = defineProps({
 :deep(h3) {
   font-size: 1.3em;
   margin-bottom: 0.5em;
+  font-weight: 600;
 }
 
 :deep(h4) {
   font-size: 1.2em;
   margin-bottom: 0.5em;
-  font-weight: bold;
+  font-weight: 500;
 }
 
 :deep(h5) {
   font-size: 1.1em;
   margin-bottom: 0.5em;
-  font-weight: bold;
+  font-weight: 400;
 }
 
 :deep(p) {
