@@ -51,6 +51,12 @@ const router = createRouter({
           component: () =>
             import('../views/ComponentsView/DataTableView/DataTableView.vue'),
         },
+        {
+          path: 'input',
+          name: 'input',
+          component: () =>
+            import('../views/ComponentsView/InputView/InputView.vue'),
+        },
       ],
     },
     {
