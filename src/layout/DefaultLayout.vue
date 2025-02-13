@@ -5,6 +5,7 @@ import { RouterLink } from 'vue-router'
  * @type {import('vue').Ref<import('primevue/menuitem').MenuItem[]>}
  */
 // @ts-ignore
+
 const items = ref([
   {
     label: 'Home',
@@ -26,6 +27,10 @@ const items = ref([
       {
         label: 'DataTable',
         route: '/components/data-table',
+      },
+      {
+        label: 'Input',
+        route: '/components/input',
       },
     ],
   },
