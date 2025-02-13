@@ -1,11 +1,13 @@
 <script setup>
-import FloatLabelDisplay from './components/FloatLabelDisplay.vue'
 import MarkdownIt from '@/components/MarkdownIt.vue'
+import FloatLabelDisplay from './components/FloatLabelDisplay.vue'
+import IconFieldDisplay from './components/IconFieldDisplay.vue'
+import IftaLabelDisplay from './components/IftaLabelDisplay.vue'
 import FloatLabelExplain from './markdown/FloatLabelExplain.md'
 import IftaLabelExplain from './markdown/IftaLabelExplain.md'
 import IconFieldExplain from './markdown/IconFieldExplain.md'
-import IconFieldDisplay from './components/IconFieldDisplay.vue'
-import IftaLabelDisplay from './components/IftaLabelDisplay.vue'
+import InputNumberDisplay from './components/InputNumberDisplay.vue'
+import InputNumberExplain from './markdown/InputNumberExplain.md'
 
 const cardDt = {
   root: {
@@ -31,6 +33,12 @@ const cardDt = {
       <template #content>
         <IconFieldDisplay />
         <MarkdownIt :source="IconFieldExplain" />
+      </template>
+    </Card>
+    <Card :dt="cardDt">
+      <template #content>
+        <InputNumberDisplay />
+        <MarkdownIt :source="InputNumberExplain" />
       </template>
     </Card>
   </div>
