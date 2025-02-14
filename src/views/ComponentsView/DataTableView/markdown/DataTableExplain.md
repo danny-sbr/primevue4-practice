@@ -80,7 +80,49 @@ const columns = [
 ```
 ## 自訂 cell 內容
 
-除了基本的顯示之外，DataTable 的 Column 元件還可以透過 `body` 屬性來顯示自訂的內容，例如想要讓價格大於 50 的顏色變成紅色，就可以使用以下方式：
+我們可以先行使用 `console.log` 來印出 `slotProps` 的內容，如下所示：
+
+```jsx
+<Column field="price" header="價格" sortable>
+  <template #body="slotProps">
+    {{ console.log(slotProps) }}
+  </template>
+</Column>
+```
+
+印出內容如下：
+
+```json
+{
+  "column": {
+    "__v_isVNode": true,
+    "__v_skip": true,
+    "type": {},
+    "props": {},
+    "key": null
+  },
+  "data":{
+    "id": "1004",
+    "code": "h456wer53",
+    "name": "Bracelet",
+    "description": "Product Description",
+    "image": "bracelet.jpg",
+    "price": 15,
+    "category": "Accessories",
+    "quantity": 73,
+    "inventoryStatus": "INSTOCK",
+    "rating": 4
+  },
+  "editorInitCallback": "fn()",
+  "field": "price",
+  "frozenRow": false,
+  "index": 4,
+  "rowTogglerCallback": "fn()",
+  "[[IsRevoked]]": false
+}
+```
+
+因此除了基本的顯示之外，DataTable 的 Column 元件還可以透過 `body`的 slot 的 Props 來顯示自訂的內容，例如想要讓價格大於 50 的顏色變成紅色，就可以使用以下方式：
 
 ```jsx
 <Column field="price" header="價格" sortable>
@@ -278,8 +320,3 @@ const onPage = (event) => {
   <Column field="rating" header="評分" sortable></Column>
 </DataTable>
 ```
-
-## 參考資料
-
-- [PrimeVue DataTable](https://primevue.org/datatable/)
-
