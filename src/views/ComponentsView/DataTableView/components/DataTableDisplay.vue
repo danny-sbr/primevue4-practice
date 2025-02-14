@@ -4,7 +4,7 @@ import { ProductService } from './productService'
 // 狀態管理相關
 const loading = ref(false)
 
-/** @typedef {import('vue').Ref<import('./DataTableDisplay').Product[]>} */
+/** @typedef {import('vue').Ref<import('../types/DataTableDisplay').Product[]>} */
 const products = ref([])
 
 /** @typedef {import('vue').Ref<number>} */
@@ -17,12 +17,12 @@ const totalRecords = ref(0)
  * @property {string} header - 設定表格標題列要顯示的文字
  */
 
-/** @type {(options: import('./DataTableDisplay').TableOption)=>Promise<void> } */
+/** @type {(options: import('../types/DataTableDisplay').TableOption)=>Promise<void> } */
 const loadData = async (options) => {
   loading.value = true
   try {
     const res = await ProductService.getProducts(options)
-    /** @typedef {import('./DataTableDisplay').Product[]} */
+    /** @typedef {import('../types/DataTableDisplay').Product[]} */
 
     console.log(res)
     const responseData = res.data
@@ -111,7 +111,7 @@ const getPriceColor = (price) => {
             <span :class="[getPriceColor(price)]">{{ price }}</span>
           </template>
         </Column>
-        <Column field="inventoryStatus" header="庫存狀態" sortable></Column>
+        <Column field="inventoryStatus" header="庫存狀態" sortable> </Column>
         <Column field="rating" header="評分" sortable></Column>
       </DataTable>
     </template>
