@@ -17,8 +17,7 @@ const totalRecords = ref(0)
  * @property {string} header - 設定表格標題列要顯示的文字
  */
 
-// 資料載入相關函式
-/** @param {import('./DataTableDisplay').TableOption} options */
+/** @type {(options: import('./DataTableDisplay').TableOption)=>Promise<void> } */
 const loadData = async (options) => {
   loading.value = true
   try {
@@ -34,10 +33,7 @@ const loadData = async (options) => {
   }
 }
 
-// 事件處理函式
-/**
- * @type {import('./DataTableDisplay').HandleSortFunction}
- */
+/** @type {(event: import('primevue/datatable').DataTableSortEvent)=>void } */
 const onSort = (event) => {
   loadData({
     page: 1,
@@ -47,7 +43,7 @@ const onSort = (event) => {
   })
 }
 
-/** @type {import('./DataTableDisplay').HandlePageFunction} */
+/** @type {(event: import('primevue/datatable').DataTablePageEvent)=>void } */
 const onPage = (event) => {
   loadData({
     page: event.page + 1,
@@ -67,7 +63,7 @@ onMounted(() => {
   })
 })
 
-/** @param {number} price */
+/** @type {(price: number) => string} */
 const getPriceColor = (price) => {
   if (price > 50) {
     return 'text-red-400'
