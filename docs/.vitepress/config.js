@@ -46,6 +46,17 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Components',
+        items: [
+          {
+            text: 'DataTable',
+            items: [
+              { text: 'API', link: '/primevue_doc/Components/dataTableAPI' },
+            ],
+          },
+        ],
+      },
+      {
         text: 'PassThrough',
         link: '/primevue_doc/PassThrough/PassThrough',
       },
