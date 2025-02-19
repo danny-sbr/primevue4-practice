@@ -87,10 +87,6 @@ const items = ref([
 
     <h3 class="mb-4 text-xl font-semibold text-gray-700">使用範例：</h3>
 
-    <CodeBlock>
-      {{ MenuViewCodeString }}
-    </CodeBlock>
-
     <p class="mb-4 text-gray-600">以下是實際使用 Menubar 元件的展示結果：</p>
 
     <Menubar :model="items">
