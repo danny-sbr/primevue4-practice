@@ -57,6 +57,20 @@ const router = createRouter({
           component: () =>
             import('../views/ComponentsView/InputView/InputView.vue'),
         },
+        {
+          path: 'drawer',
+          name: 'drawer',
+          component: () =>
+            import('../views/ComponentsView/DrawerView/DrawerView.vue'),
+        },
+        {
+          path: 'organization-chart',
+          name: 'organization-chart',
+          component: () =>
+            import(
+              '../views/ComponentsView/OrganizationChartView/OrganizationChartView.vue'
+            ),
+        },
       ],
     },
     {
