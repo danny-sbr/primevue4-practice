@@ -32,6 +32,14 @@ const items = ref([
         label: 'Input',
         route: '/components/input',
       },
+      {
+        label: 'Drawer',
+        route: '/components/drawer',
+      },
+      {
+        label: 'OrganizationChart',
+        route: '/components/organization-chart',
+      },
     ],
   },
   {
