@@ -50,8 +50,19 @@ export default defineConfig({
         items: [
           {
             text: 'DataTable',
+            collapsed: true,
             items: [
               { text: 'API', link: '/primevue_doc/Components/dataTableAPI' },
+            ],
+          },
+          {
+            text: 'ConfirmDialog',
+            collapsed: true,
+            items: [
+              {
+                text: 'API',
+                link: '/primevue_doc/Components/ConfirmDialogAPI',
+              },
             ],
           },
         ],
