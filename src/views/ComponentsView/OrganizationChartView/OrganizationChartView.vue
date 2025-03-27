@@ -1,99 +1,89 @@
 <script setup>
+import MarkdownIt from '@/components/MarkdownIt.vue'
+import OrganizationChartExplain from './markdown/OrganizationChartExplain.md'
+
 const data = ref({
-  key: '2020-000009',
-  gender: '公',
-  label: '飛翔 9 號',
-  color: '石板',
-  strain: '阿密魯 x 畢包',
-  creator: '亞太',
-  awards:
-    '新竹春 18-123456 灰（公）五關綜合冠軍、桃園秋 19-789012 灰（公）四關優勝、總經理盃 20-345678 灰（公）三關入賞',
+  key: 'home',
+  label: '首頁',
+  url: '/',
   children: [
     {
-      key: '2020-000005',
-      gender: '母',
-      label: '飛翔 5 號',
-      color: '灰',
-      strain: '阿密盒 x 單包',
-      creator: '五丈',
-      awards:
-        '台中冬 17-456789 灰（母）五關綜合亞軍、嘉義春 18-234567 灰（母）四關第三名',
+      key: 'products',
+      label: '產品介紹',
+      url: '/products',
       children: [
         {
-          key: '2020-000003',
-          gender: '公',
-          label: '飛翔 3 號',
-          color: '點灰白羽',
-          strain: '阿密盒 x 單包',
-          creator: '五丈',
-          awards:
-            '台北春 16-987654 灰（公）三關優勝、總統盃 17-345678 灰（公）五關入賞',
+          key: 'hardware',
+          label: '硬體設備',
+          url: '/products/hardware',
           children: [
             {
-              key: '2020-000001',
-              gender: '公',
-              label: '飛翔 1 號',
-              color: '灰',
-              strain: '阿密盒 x 單包',
-              creator: '五丈',
-              awards:
-                '高雄冬 15-123789 灰（公）四關第五名、屏東秋 16-456123 灰（公）三關入賞',
+              key: 'servers',
+              label: '伺服器',
+              url: '/products/hardware/servers',
             },
             {
-              key: '2020-000002',
-              gender: '母',
-              label: '飛翔 2 號',
-              color: '灰',
-              strain: '阿密盒 x 單包',
-              creator: '五丈',
-              awards:
-                '宜蘭春 15-789456 灰（母）五關第八名、花蓮夏 16-234789 灰（母）四關入賞',
+              key: 'network',
+              label: '網路設備',
+              url: '/products/hardware/network',
+            },
+          ],
+        },
+        {
+          key: 'software',
+          label: '軟體服務',
+          url: '/products/software',
+          children: [
+            {
+              key: 'cloud',
+              label: '雲端服務',
+              url: '/products/software/cloud',
+            },
+            {
+              key: 'security',
+              label: '資安解決方案',
+              url: '/products/software/security',
             },
           ],
         },
       ],
     },
     {
-      key: '2020-000006',
-      gender: '公',
-      label: '飛翔 6 號',
-      color: '白',
-      strain: '阿密魯 x 畢包',
-      creator: '亞太',
-      awards:
-        '台南春 17-567890 白（公）四關綜合冠軍、雲林秋 18-901234 白（公）五關優勝',
+      key: 'solutions',
+      label: '解決方案',
+      url: '/solutions',
       children: [
         {
-          key: '2020-000004',
-          gender: '母',
-          label: '飛翔 4 號',
-          color: '白點',
-          strain: '阿密魯 x 畢包',
-          creator: '亞太',
-          awards:
-            '彰化夏 16-345678 白（母）三關亞軍、南投秋 17-678901 白（母）四關第三名',
+          key: 'enterprise',
+          label: '企業方案',
+          url: '/solutions/enterprise',
+        },
+        {
+          key: 'sme',
+          label: '中小企業方案',
+          url: '/solutions/sme',
         },
       ],
     },
     {
-      key: '2020-000007',
-      gender: '母',
-      label: '飛翔 7 號',
-      color: '藍白',
-      strain: '阿密魯 x 畢包',
-      creator: '亞太',
-      awards:
-        '基隆冬 17-234567 藍（母）五關優勝、台東春 18-567890 藍（母）三關第二名',
+      key: 'about',
+      label: '關於我們',
+      url: '/about',
       children: [
         {
-          key: '2020-000008',
-          gender: '公',
-          label: '飛翔 8 號',
-          color: '藍斑',
-          strain: '阿密魯 x 畢包',
-          creator: '亞太',
-          awards:
-            '澎湖夏 16-789012 藍（公）四關冠軍、金門秋 17-123456 藍（公）五關入賞',
+          key: 'company',
+          label: '公司簡介',
+          url: '/about/company',
+        },
+        {
+          key: 'team',
+          label: '團隊成員',
+          url: '/about/team',
+        },
+        {
+          key: 'contact',
+          label: '聯絡資訊',
+          url: '/about/contact',
         },
       ],
     },
@@ -101,46 +91,16 @@ const data = ref({
 })
 </script>
 <template>
+  <MarkdownIt :source="OrganizationChartExplain" />
   <OrganizationChart
     :value="data"
-    :pt="{
-      root: {
-        class: 'w-full',
-      },
-      node: {
-        class: 'w-full',
-      },
-      table: {
-        class: 'min-w-[200px]',
-      },
-    }"
+    class="overflow-auto rounded-md border border-gray-300 p-2"
   >
     <template #default="slotProps">
-      <p class="font-bold text-sky-600">{{ slotProps.node.key }}</p>
-
+      <p class="font-bold text-sky-600">{{ slotProps.node.label }}</p>
       <p>
-        <span class="font-bold">名字：</span>
-        {{ slotProps.node.label }}
-      </p>
-      <p>
-        <span class="font-bold">性別：</span>
-        {{ slotProps.node.gender }}
-      </p>
-      <p>
-        <span class="font-bold">顏色：</span>
-        {{ slotProps.node.color }}
-      </p>
-      <p>
-        <span class="font-bold">血統：</span>
-        {{ slotProps.node.strain }}
-      </p>
-      <p>
-        <span class="font-bold">培育者：</span>
-        {{ slotProps.node.creator }}
-      </p>
-      <p>
-        <span class="font-bold">獎項：</span>
-        {{ slotProps.node.awards }}
+        <span class="font-bold">連結：</span>
+        {{ slotProps.node.url }}
       </p>
     </template>
   </OrganizationChart>
