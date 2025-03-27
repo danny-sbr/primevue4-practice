@@ -71,6 +71,12 @@ const router = createRouter({
               '../views/ComponentsView/OrganizationChartView/OrganizationChartView.vue'
             ),
         },
+        {
+          path: 'dialog',
+          name: 'dialog',
+          component: () =>
+            import('../views/ComponentsView/DialogView/DialogView.vue'),
+        },
       ],
     },
     {
