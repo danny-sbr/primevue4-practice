@@ -40,6 +40,10 @@ const items = ref([
         label: 'OrganizationChart',
         route: '/components/organization-chart',
       },
+      {
+        label: 'Dialog',
+        route: '/components/dialog',
+      },
     ],
   },
   {
