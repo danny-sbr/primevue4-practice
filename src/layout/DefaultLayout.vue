@@ -44,6 +44,10 @@ const items = ref([
         label: 'Dialog',
         route: '/components/dialog',
       },
+      {
+        label: 'FileUpload',
+        route: '/components/file-upload',
+      },
     ],
   },
   {
