@@ -77,6 +77,12 @@ const router = createRouter({
           component: () =>
             import('../views/ComponentsView/DialogView/DialogView.vue'),
         },
+        {
+          path: 'file-upload',
+          name: 'file-upload',
+          component: () =>
+            import('../views/ComponentsView/FileUploadView/FileUploadView.vue'),
+        },
       ],
     },
     {
