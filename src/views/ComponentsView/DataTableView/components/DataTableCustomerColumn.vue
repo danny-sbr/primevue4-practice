@@ -1,10 +1,14 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import MultiSelect from 'primevue/multiselect'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
+
+const toast = useToast()
 
 // 定義所有可用的欄位
 const availableColumns = [
@@ -25,9 +29,14 @@ const columnOptions = [
   })),
 ]
 
+// LocalStorage 的 key
+const STORAGE_KEY = 'dataTable_customColumn_settings'
+
 // 響應式資料 - 直接初始化為正確的值
 const selectedOptions = ref([])
 const selectedColumns = ref([])
+const columnOrder = ref([]) // 新增：追蹤欄位順序
+const hasStoredSettings = ref(false) // 新增：是否有儲存的設定
 
 // 計算是否顯示全部
 const isShowAll = computed(() => {
@@ -36,9 +45,32 @@ const isShowAll = computed(() => {
   return allFieldValues.every((field) => selectedOptions.value.includes(field))
 })
 
-// 計算要顯示的欄位
+// 計算要顯示的欄位（考慮自訂順序）
 const displayColumns = computed(() => {
   if (isShowAll.value) {
+    // 如果顯示全部，根據 columnOrder 排序，沒有在 order 中的欄位按原順序放在最後
+    if (columnOrder.value.length > 0) {
+      const orderedColumns = []
+      const remainingColumns = [...availableColumns]
+
+      // 先按照 columnOrder 的順序加入欄位
+      for (const fieldName of columnOrder.value) {
+        const column = availableColumns.find((col) => col.field === fieldName)
+        if (column) {
+          orderedColumns.push(column)
+          const index = remainingColumns.findIndex(
+            (col) => col.field === fieldName,
+          )
+          if (index > -1) {
+            remainingColumns.splice(index, 1)
+          }
+        }
+      }
+
+      // 再加入剩餘的欄位
+      orderedColumns.push(...remainingColumns)
+      return orderedColumns
+    }
     return availableColumns
   }
 
@@ -46,18 +78,39 @@ const displayColumns = computed(() => {
     return []
   }
 
+  // 根據 columnOrder 和 selectedColumns 來排序
+  if (columnOrder.value.length > 0) {
+    const orderedColumns = []
+    const remainingFields = [...selectedColumns.value]
+
+    // 先按照 columnOrder 的順序加入已選中的欄位
+    for (const fieldName of columnOrder.value) {
+      if (selectedColumns.value.includes(fieldName)) {
+        const column = availableColumns.find((col) => col.field === fieldName)
+        if (column) {
+          orderedColumns.push(column)
+          const index = remainingFields.indexOf(fieldName)
+          if (index > -1) {
+            remainingFields.splice(index, 1)
+          }
+        }
+      }
+    }
+
+    // 再加入剩餘的已選中欄位（新選中但不在 order 中的）
+    for (const fieldName of remainingFields) {
+      const column = availableColumns.find((col) => col.field === fieldName)
+      if (column) {
+        orderedColumns.push(column)
+      }
+    }
+
+    return orderedColumns
+  }
+
   return availableColumns.filter((col) =>
     selectedColumns.value.includes(col.field),
   )
-})
-
-// 計算表格樣式
-const tableStyle = computed(() => {
-  const minWidth = displayColumns.value.reduce(
-    (sum, col) => sum + col.minWidth,
-    0,
-  )
-  return `min-width: ${minWidth}px; width: 100%;`
 })
 
 // 空訊息
@@ -161,10 +214,98 @@ const handleColumnSelection = (values) => {
   selectedColumns.value = validFields
 }
 
+// 儲存設定到 localStorage
+const saveSettings = () => {
+  try {
+    const settings = {
+      selectedColumns: selectedColumns.value,
+      columnOrder: columnOrder.value,
+      savedAt: new Date().toISOString(),
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+    hasStoredSettings.value = true
+
+    toast.add({
+      severity: 'success',
+      summary: '儲存成功',
+      detail: '欄位設定已儲存',
+      life: 3000,
+    })
+  } catch (error) {
+    console.error('儲存設定時發生錯誤：', error)
+    toast.add({
+      severity: 'error',
+      summary: '儲存失敗',
+      detail: '無法儲存欄位設定',
+      life: 3000,
+    })
+  }
+}
+
+// 從 localStorage 載入設定
+const loadSettings = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      const settings = JSON.parse(saved)
+
+      // 驗證載入的資料
+      if (settings.selectedColumns && Array.isArray(settings.selectedColumns)) {
+        // 過濾掉無效的欄位
+        const validSelectedColumns = settings.selectedColumns.filter((field) =>
+          availableColumns.some((col) => col.field === field),
+        )
+
+        selectedColumns.value = validSelectedColumns
+        selectedOptions.value = validSelectedColumns
+      }
+
+      if (settings.columnOrder && Array.isArray(settings.columnOrder)) {
+        // 過濾掉無效的欄位順序
+        const validColumnOrder = settings.columnOrder.filter((field) =>
+          availableColumns.some((col) => col.field === field),
+        )
+
+        columnOrder.value = validColumnOrder
+      }
+
+      hasStoredSettings.value = true
+      console.log('已載入儲存的欄位設定', settings)
+    } else {
+      hasStoredSettings.value = false
+    }
+  } catch (error) {
+    console.error('載入設定時發生錯誤：', error)
+    hasStoredSettings.value = false
+  }
+}
+
 // 處理欄位重新排序
 const onColumnReorder = (event) => {
-  // 這裡可以加入欄位重新排序的邏輯
   console.log('Column reordered:', event)
+
+  // 從 event 中取得新的欄位順序
+  if (event.dragIndex !== undefined && event.dropIndex !== undefined) {
+    const currentDisplayColumns = displayColumns.value
+    const draggedColumn = currentDisplayColumns[event.dragIndex]
+    const dropColumn = currentDisplayColumns[event.dropIndex]
+
+    if (draggedColumn && dropColumn) {
+      // 建立新的欄位順序
+      const newOrder = [...currentDisplayColumns.map((col) => col.field)]
+
+      // 移除被拖曳的欄位
+      const draggedField = newOrder.splice(event.dragIndex, 1)[0]
+
+      // 在新位置插入
+      newOrder.splice(event.dropIndex, 0, draggedField)
+
+      // 更新 columnOrder
+      columnOrder.value = newOrder
+
+      console.log('更新後的欄位順序：', newOrder)
+    }
+  }
 }
 
 // 編輯項目
@@ -178,6 +319,39 @@ const viewItem = (item) => {
   console.log('查看項目：', item)
   // 這裡可以加入查看邏輯
 }
+
+// 重置設定
+const resetSettings = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+
+    // 重置為預設值
+    selectedColumns.value = []
+    selectedOptions.value = []
+    columnOrder.value = []
+    hasStoredSettings.value = false
+
+    toast.add({
+      severity: 'info',
+      summary: '重置成功',
+      detail: '已清除儲存的欄位設定',
+      life: 3000,
+    })
+  } catch (error) {
+    console.error('重置設定時發生錯誤：', error)
+    toast.add({
+      severity: 'error',
+      summary: '重置失敗',
+      detail: '無法清除欄位設定',
+      life: 3000,
+    })
+  }
+}
+
+// 組件掛載時載入設定
+onMounted(() => {
+  loadSettings()
+})
 </script>
 
 <template>
@@ -186,7 +360,6 @@ const viewItem = (item) => {
     <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
       <DataTable
         :value="tableData"
-        :table-style="tableStyle"
         show-gridlines
         striped-rows
         reorderable-columns
@@ -216,18 +389,37 @@ const viewItem = (item) => {
                   display="chip"
                   placeholder="請選擇要顯示的欄位"
                   class="w-full"
-                  :max-selected-labels="3"
                   :selection-limit="null"
-                  :filter="false"
                   :show-clear="true"
                   data-key="value"
                   :pt="multiSelectPt"
                 />
               </div>
+
+              <!-- 儲存設定按鈕 -->
+              <div class="flex gap-2">
+                <Button
+                  icon="pi pi-save"
+                  label="儲存欄位設定"
+                  @click="saveSettings"
+                  :disabled="selectedColumns.length === 0"
+                  class="whitespace-nowrap"
+                  v-tooltip.top="'儲存當前的欄位選擇和排序到瀏覽器本地儲存'"
+                />
+                <Button
+                  icon="pi pi-refresh"
+                  label="重置設定"
+                  @click="resetSettings"
+                  severity="secondary"
+                  outlined
+                  class="whitespace-nowrap"
+                  v-tooltip.top="'清除儲存的設定並回到預設狀態'"
+                />
+              </div>
             </div>
 
             <!-- 選擇狀態提示 -->
-            <div class="mt-4 text-sm text-gray-600">
+            <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
               <span
                 v-if="isShowAll"
                 class="inline-flex items-center text-green-600"
@@ -245,6 +437,15 @@ const viewItem = (item) => {
               <span v-else class="inline-flex items-center text-blue-600">
                 <i class="pi pi-filter mr-1"></i>
                 已選擇 {{ selectedColumns.length }} 個欄位
+              </span>
+
+              <!-- 儲存狀態提示 -->
+              <span
+                v-if="hasStoredSettings"
+                class="inline-flex items-center text-purple-600"
+              >
+                <i class="pi pi-database mr-1"></i>
+                使用儲存的設定
               </span>
             </div>
           </div>
@@ -333,5 +534,8 @@ const viewItem = (item) => {
         </Column>
       </DataTable>
     </div>
+
+    <!-- Toast 組件用於顯示儲存訊息 -->
+    <Toast />
   </div>
 </template>
