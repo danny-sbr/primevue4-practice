@@ -152,18 +152,13 @@ const handleColumnSelection = (values) => {
     ? values.filter((v) => v != null && v !== '')
     : []
 
-  if (cleanValues.includes('all')) {
-    // 如果選擇了"全部"，只保留 all 選項
-    selectedOptions.value = ['all']
-    selectedColumns.value = []
-  } else {
-    // 如果選擇了具體欄位，移除"全部"選項並過濾有效值
-    const validFields = cleanValues.filter(
-      (v) => v !== 'all' && availableColumns.some((col) => col.field === v),
-    )
-    selectedOptions.value = validFields
-    selectedColumns.value = validFields
-  }
+  // 過濾有效的欄位值
+  const validFields = cleanValues.filter((v) =>
+    availableColumns.some((col) => col.field === v),
+  )
+
+  selectedOptions.value = validFields
+  selectedColumns.value = validFields
 }
 
 // 處理欄位重新排序
@@ -183,76 +178,10 @@ const viewItem = (item) => {
   console.log('查看項目：', item)
   // 這裡可以加入查看邏輯
 }
-
-// 監聽選項變化
-watch(
-  selectedOptions,
-  (newValue) => {
-    console.log('選擇的欄位：', newValue)
-    // 檢查是否有空值或 undefined
-    const hasEmptyValues = newValue.some((v) => v == null || v === '')
-    if (hasEmptyValues) {
-      console.warn('檢測到空值，自動清理：', newValue)
-      // 自動清理空值
-      selectedOptions.value = newValue.filter((v) => v != null && v !== '')
-    }
-  },
-  { deep: true },
-)
-
-// 移除不必要的初始化，因為 selectedOptions 已經直接設定預設值
 </script>
 
 <template>
   <div class="mx-auto mt-6 max-w-7xl px-4">
-    <h3 class="mb-6 text-2xl font-bold">可動態選擇欄位的 DataTable</h3>
-
-    <!-- 欄位選擇控制區域 -->
-    <div class="mb-6 rounded-lg border bg-white p-6 shadow-sm">
-      <div class="flex flex-wrap items-end gap-4">
-        <div class="min-w-80 flex-1">
-          <label class="mb-2 block font-semibold text-gray-700">
-            選擇要顯示的欄位：
-          </label>
-          <MultiSelect
-            v-model="selectedOptions"
-            :options="columnOptions"
-            option-label="label"
-            option-value="value"
-            @update:model-value="handleColumnSelection"
-            display="chip"
-            placeholder="請選擇要顯示的欄位"
-            class="w-full"
-            :max-selected-labels="3"
-            :selection-limit="null"
-            :filter="false"
-            :show-clear="true"
-            data-key="value"
-            :pt="multiSelectPt"
-          />
-        </div>
-      </div>
-
-      <!-- 選擇狀態提示 -->
-      <div class="mt-4 text-sm text-gray-600">
-        <span v-if="isShowAll" class="inline-flex items-center text-green-600">
-          <i class="pi pi-check-circle mr-1"></i>
-          顯示全部欄位
-        </span>
-        <span
-          v-else-if="selectedColumns.length === 0"
-          class="inline-flex items-center text-orange-600"
-        >
-          <i class="pi pi-info-circle mr-1"></i>
-          未選擇任何欄位 - 顯示空表格
-        </span>
-        <span v-else class="inline-flex items-center text-blue-600">
-          <i class="pi pi-filter mr-1"></i>
-          已選擇 {{ selectedColumns.length }} 個欄位
-        </span>
-      </div>
-    </div>
-
     <!-- DataTable -->
     <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
       <DataTable
@@ -268,6 +197,58 @@ watch(
         :empty-message="emptyMessage"
         :pt="dataTablePt"
       >
+        <template #header>
+          <h3 class="mb-6 text-2xl font-bold">可動態選擇欄位的 DataTable</h3>
+
+          <!-- 欄位選擇控制區域 -->
+          <div class="mb-6 rounded-lg border bg-white p-6 shadow-sm">
+            <div class="flex flex-wrap items-end gap-4">
+              <div class="min-w-80 flex-1">
+                <label class="mb-2 block font-semibold text-gray-700">
+                  選擇要顯示的欄位：
+                </label>
+                <MultiSelect
+                  v-model="selectedOptions"
+                  :options="columnOptions"
+                  option-label="label"
+                  option-value="value"
+                  @update:model-value="handleColumnSelection"
+                  display="chip"
+                  placeholder="請選擇要顯示的欄位"
+                  class="w-full"
+                  :max-selected-labels="3"
+                  :selection-limit="null"
+                  :filter="false"
+                  :show-clear="true"
+                  data-key="value"
+                  :pt="multiSelectPt"
+                />
+              </div>
+            </div>
+
+            <!-- 選擇狀態提示 -->
+            <div class="mt-4 text-sm text-gray-600">
+              <span
+                v-if="isShowAll"
+                class="inline-flex items-center text-green-600"
+              >
+                <i class="pi pi-check-circle mr-1"></i>
+                顯示全部欄位
+              </span>
+              <span
+                v-else-if="selectedColumns.length === 0"
+                class="inline-flex items-center text-orange-600"
+              >
+                <i class="pi pi-info-circle mr-1"></i>
+                未選擇任何欄位 - 顯示空表格
+              </span>
+              <span v-else class="inline-flex items-center text-blue-600">
+                <i class="pi pi-filter mr-1"></i>
+                已選擇 {{ selectedColumns.length }} 個欄位
+              </span>
+            </div>
+          </div>
+        </template>
         <!-- 動態渲染選中的欄位 -->
         <Column
           v-for="col in displayColumns"
@@ -351,14 +332,6 @@ watch(
           </template>
         </Column>
       </DataTable>
-    </div>
-
-    <!-- 統計資訊 -->
-    <div class="mt-4 flex items-center justify-between text-sm text-gray-600">
-      <span>共 {{ tableData.length }} 筆資料</span>
-      <span v-if="selectedColumns.length > 0">
-        顯示 {{ selectedColumns.length }} / {{ availableColumns.length }} 個欄位
-      </span>
     </div>
   </div>
 </template>
