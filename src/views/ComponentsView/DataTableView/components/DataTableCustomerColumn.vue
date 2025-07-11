@@ -112,6 +112,39 @@ const tableData = ref([
   },
 ])
 
+// DataTable 的 PassThrough 設定
+const dataTablePt = {
+  thead: {
+    style: 'background-color: #f8fafc;',
+  },
+  headerCell: {
+    style:
+      'background-color: #f8fafc; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; padding: 12px;',
+  },
+  bodyRow: {
+    style: 'transition: background-color 0.2s;',
+    onMouseenter: (event) => {
+      event.currentTarget.style.backgroundColor = '#f8fafc'
+    },
+    onMouseleave: (event) => {
+      event.currentTarget.style.backgroundColor = ''
+    },
+  },
+  bodyCell: {
+    style: 'padding: 12px; border-bottom: 1px solid #f3f4f6;',
+  },
+}
+
+// MultiSelect 的 PassThrough 設定
+const multiSelectPt = {
+  root: {
+    style: 'min-height: 42px;',
+  },
+  label: {
+    style: 'padding: 8px 12px;',
+  },
+}
+
 // 處理欄位選擇
 const handleColumnSelection = (values) => {
   // 確保 values 是陣列且過濾掉空值
@@ -170,33 +203,6 @@ watch(
 // 移除不必要的初始化，因為 selectedOptions 已經直接設定預設值
 </script>
 
-<style scoped>
-/* PrimeVue DataTable 客製化樣式 */
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background-color: #f8fafc;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: #f8fafc;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr > td) {
-  padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-:deep(.p-multiselect) {
-  min-height: 42px;
-}
-
-:deep(.p-multiselect .p-multiselect-label) {
-  padding: 8px 12px;
-}
-</style>
-
 <template>
   <div class="mx-auto mt-6 max-w-7xl px-4">
     <h3 class="mb-6 text-2xl font-bold">可動態選擇欄位的 DataTable</h3>
@@ -222,6 +228,7 @@ watch(
             :filter="false"
             :show-clear="true"
             data-key="value"
+            :pt="multiSelectPt"
           />
         </div>
       </div>
@@ -259,6 +266,7 @@ watch(
         @column-reorder="onColumnReorder"
         class="p-datatable-sm"
         :empty-message="emptyMessage"
+        :pt="dataTablePt"
       >
         <!-- 動態渲染選中的欄位 -->
         <Column
