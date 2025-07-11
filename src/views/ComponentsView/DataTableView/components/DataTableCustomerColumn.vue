@@ -8,9 +8,21 @@ import Tag from 'primevue/tag'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 
+/** 引入型別定義 */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').ColumnConfig} ColumnConfig */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').ColumnOption} ColumnOption */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').TableDataItem} TableDataItem */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').SettingsData} SettingsData */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').ApiResponse} ApiResponse */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').ApiError} ApiError */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').ReorderEvent} ReorderEvent */
+/** @typedef {import('./DataTableCustomerColumn.d.ts').ApiServiceInterface} ApiServiceInterface */
+
+/** @type {any} */
 const toast = useToast()
 
 // 定義所有可用的欄位
+/** @type {ColumnConfig[]} */
 const availableColumns = [
   { field: 'id', header: 'ID', minWidth: 80, sortable: true },
   { field: 'name', header: '姓名', minWidth: 150, sortable: true },
@@ -22,6 +34,7 @@ const availableColumns = [
 ]
 
 // MultiSelect 的選項
+/** @type {ColumnOption[]} */
 const columnOptions = [
   ...availableColumns.map((col) => ({
     label: col.header,
@@ -30,25 +43,33 @@ const columnOptions = [
 ]
 
 // LocalStorage 的 key
+/** @type {string} */
 const STORAGE_KEY = 'dataTable_customColumn_settings'
 
 // 模擬 API 延遲時間（毫秒）
+/** @type {number} */
 const API_DELAY = 300
 
 // 模擬 API 服務
+/** @type {ApiServiceInterface} */
 const apiService = {
-  // 模擬 GET API - 獲取設定
+  /**
+   * 模擬 GET API - 獲取設定
+   * @type {() => Promise<ApiResponse>}
+   */
   async getSettings() {
     // 模擬網路延遲
     await new Promise((resolve) => setTimeout(resolve, API_DELAY))
 
     try {
+      /** @type {string | null} */
       const data = localStorage.getItem(STORAGE_KEY)
       if (!data) {
         // 模擬 404 Not Found
         throw new Error('Settings not found')
       }
 
+      /** @type {SettingsData} */
       const settings = JSON.parse(data)
 
       // 模擬 API 回應格式
@@ -72,12 +93,16 @@ const apiService = {
     }
   },
 
-  // 模擬 POST API - 儲存設定
+  /**
+   * 模擬 POST API - 儲存設定
+   * @type {(settingsData: SettingsData) => Promise<ApiResponse>}
+   */
   async saveSettings(settingsData) {
     // 模擬網路延遲
     await new Promise((resolve) => setTimeout(resolve, API_DELAY))
 
     try {
+      /** @type {SettingsData} */
       const dataToSave = {
         ...settingsData,
         savedAt: new Date().toISOString(),
@@ -101,12 +126,16 @@ const apiService = {
     }
   },
 
-  // 模擬 DELETE API - 刪除設定
+  /**
+   * 模擬 DELETE API - 刪除設定
+   * @type {() => Promise<ApiResponse>}
+   */
   async deleteSettings() {
     // 模擬網路延遲
     await new Promise((resolve) => setTimeout(resolve, API_DELAY))
 
     try {
+      /** @type {boolean} */
       const existed = localStorage.getItem(STORAGE_KEY) !== null
       localStorage.removeItem(STORAGE_KEY)
 
@@ -126,31 +155,52 @@ const apiService = {
 }
 
 // 響應式資料 - 直接初始化為正確的值
+/** @type {import('vue').Ref<string[]>} */
 const selectedOptions = ref([])
+/** @type {import('vue').Ref<string[]>} */
 const selectedColumns = ref([])
+/** @type {import('vue').Ref<string[]>} */
 const columnOrder = ref([]) // 新增：追蹤欄位順序
-const hasStoredSettings = ref(false) // 新增：是否有儲存的設定
 
 // 計算是否顯示全部
+/** @type {import('vue').ComputedRef<boolean>} */
 const isShowAll = computed(() => {
   // 檢查所有可用欄位是否都被選中
+  /** @type {string[]} */
   const allFieldValues = availableColumns.map((col) => col.field)
   return allFieldValues.every((field) => selectedOptions.value.includes(field))
 })
 
-// 計算要顯示的欄位（考慮自訂順序）
+/**
+ * 計算要顯示的欄位（考慮自訂順序）
+ * 此計算屬性負責根據使用者的選擇和自訂排序來決定最終要顯示的欄位
+ *
+ * 處理邏輯分為三種情況：
+ * 1. 顯示全部欄位（isShowAll = true）
+ * 2. 沒有選擇任何欄位（selectedColumns 為空）
+ * 3. 有選擇特定欄位且需要排序
+ * @type {import('vue').ComputedRef<ColumnConfig[]>}
+ */
 const displayColumns = computed(() => {
+  // 【第一步】檢查是否要顯示全部欄位
   if (isShowAll.value) {
-    // 如果顯示全部，根據 columnOrder 排序，沒有在 order 中的欄位按原順序放在最後
+    // 【情況 1-A】顯示全部欄位且有自訂排序
     if (columnOrder.value.length > 0) {
-      const orderedColumns = []
-      const remainingColumns = [...availableColumns]
+      /** @type {ColumnConfig[]} */
+      const orderedColumns = [] // 儲存排序後的欄位
+      /** @type {ColumnConfig[]} */
+      const remainingColumns = [...availableColumns] // 複製所有可用欄位，避免修改原陣列
 
-      // 先按照 columnOrder 的順序加入欄位
+      // 【步驟 1-A-1】先按照使用者自訂的 columnOrder 順序加入欄位
       for (const fieldName of columnOrder.value) {
+        // 在所有可用欄位中找到對應的欄位物件
+        /** @type {ColumnConfig | undefined} */
         const column = availableColumns.find((col) => col.field === fieldName)
         if (column) {
-          orderedColumns.push(column)
+          orderedColumns.push(column) // 加入到排序後的陣列
+
+          // 從剩餘欄位中移除已處理的欄位
+          /** @type {number} */
           const index = remainingColumns.findIndex(
             (col) => col.field === fieldName,
           )
@@ -160,28 +210,40 @@ const displayColumns = computed(() => {
         }
       }
 
-      // 再加入剩餘的欄位
+      // 【步驟 1-A-2】將未在自訂順序中的剩餘欄位按原始順序加入最後
       orderedColumns.push(...remainingColumns)
       return orderedColumns
     }
+
+    // 【情況 1-B】顯示全部欄位但沒有自訂排序，直接返回原始順序
     return availableColumns
   }
 
+  // 【第二步】檢查是否沒有選擇任何欄位
   if (selectedColumns.value.length === 0) {
+    // 【情況 2】沒有選擇任何欄位，返回空陣列（顯示空表格）
     return []
   }
 
-  // 根據 columnOrder 和 selectedColumns 來排序
+  // 【第三步】處理有選擇特定欄位的情況
+  // 【情況 3-A】有選擇欄位且有自訂排序
   if (columnOrder.value.length > 0) {
-    const orderedColumns = []
-    const remainingFields = [...selectedColumns.value]
+    /** @type {ColumnConfig[]} */
+    const orderedColumns = [] // 儲存排序後的欄位
+    /** @type {string[]} */
+    const remainingFields = [...selectedColumns.value] // 複製已選欄位清單
 
-    // 先按照 columnOrder 的順序加入已選中的欄位
+    // 【步驟 3-A-1】先按照 columnOrder 順序加入已選中的欄位
     for (const fieldName of columnOrder.value) {
+      // 檢查此欄位是否在使用者選中的欄位中
       if (selectedColumns.value.includes(fieldName)) {
+        /** @type {ColumnConfig | undefined} */
         const column = availableColumns.find((col) => col.field === fieldName)
         if (column) {
-          orderedColumns.push(column)
+          orderedColumns.push(column) // 加入到排序後的陣列
+
+          // 從剩餘欄位清單中移除已處理的欄位
+          /** @type {number} */
           const index = remainingFields.indexOf(fieldName)
           if (index > -1) {
             remainingFields.splice(index, 1)
@@ -190,8 +252,9 @@ const displayColumns = computed(() => {
       }
     }
 
-    // 再加入剩餘的已選中欄位（新選中但不在 order 中的）
+    // 【步驟 3-A-2】加入剩餘的已選中欄位（新選中但不在自訂順序中的欄位）
     for (const fieldName of remainingFields) {
+      /** @type {ColumnConfig | undefined} */
       const column = availableColumns.find((col) => col.field === fieldName)
       if (column) {
         orderedColumns.push(column)
@@ -201,12 +264,14 @@ const displayColumns = computed(() => {
     return orderedColumns
   }
 
+  // 【情況 3-B】有選擇欄位但沒有自訂排序，按原始順序過濾
   return availableColumns.filter((col) =>
     selectedColumns.value.includes(col.field),
   )
 })
 
 // 空訊息
+/** @type {import('vue').ComputedRef<string>} */
 const emptyMessage = computed(() => {
   if (selectedColumns.value.length === 0 && !isShowAll.value) {
     return '未選擇任何欄位，請從上方選擇要顯示的欄位'
@@ -215,6 +280,7 @@ const emptyMessage = computed(() => {
 })
 
 // 測試資料
+/** @type {import('vue').Ref<TableDataItem[]>} */
 const tableData = ref([
   {
     id: 1,
@@ -258,7 +324,6 @@ const tableData = ref([
   },
 ])
 
-// DataTable 的 PassThrough 設定
 const dataTablePt = {
   thead: {
     style: 'background-color: #f8fafc;',
@@ -269,11 +334,15 @@ const dataTablePt = {
   },
   bodyRow: {
     style: 'transition: background-color 0.2s;',
+    /** @type {(event: MouseEvent) => void} */
     onMouseenter: (event) => {
-      event.currentTarget.style.backgroundColor = '#f8fafc'
+      const target = /** @type {HTMLElement} */ (event.currentTarget)
+      target.style.backgroundColor = '#f8fafc'
     },
+    /** @type {(event: MouseEvent) => void} */
     onMouseleave: (event) => {
-      event.currentTarget.style.backgroundColor = ''
+      const target = /** @type {HTMLElement} */ (event.currentTarget)
+      target.style.backgroundColor = ''
     },
   },
   bodyCell: {
@@ -282,6 +351,7 @@ const dataTablePt = {
 }
 
 // MultiSelect 的 PassThrough 設定
+/** @type {Object} */
 const multiSelectPt = {
   root: {
     style: 'min-height: 42px;',
@@ -291,7 +361,10 @@ const multiSelectPt = {
   },
 }
 
-// 處理欄位選擇
+/**
+ * 處理欄位選擇
+ * @type {(values: string[] | null | undefined) => void}
+ */
 const handleColumnSelection = (values) => {
   // 確保 values 是陣列且過濾掉空值
   const cleanValues = Array.isArray(values)
@@ -307,7 +380,9 @@ const handleColumnSelection = (values) => {
   selectedColumns.value = validFields
 }
 
-// 儲存設定 - 使用模擬 POST API
+/**
+ * 儲存設定 - 使用模擬 POST API
+ */
 const saveSettings = async () => {
   try {
     // 顯示載入中的訊息
@@ -318,15 +393,15 @@ const saveSettings = async () => {
       life: 2000,
     })
 
+    /** @type {SettingsData} */
     const settingsData = {
       selectedColumns: selectedColumns.value,
       columnOrder: columnOrder.value,
     }
 
     // 呼叫模擬 POST API
+    /** @type {ApiResponse} */
     const response = await apiService.saveSettings(settingsData)
-
-    hasStoredSettings.value = true
 
     toast.add({
       severity: 'success',
@@ -347,11 +422,15 @@ const saveSettings = async () => {
   }
 }
 
-// 載入設定 - 使用模擬 GET API
+/**
+ * 載入設定 - 使用模擬 GET API
+ */
 const loadSettings = async () => {
   try {
     // 呼叫模擬 GET API
+    /** @type {ApiResponse} */
     const response = await apiService.getSettings()
+    /** @type {SettingsData} */
     const settings = response.data
 
     // 驗證載入的資料
@@ -374,18 +453,15 @@ const loadSettings = async () => {
       columnOrder.value = validColumnOrder
     }
 
-    hasStoredSettings.value = true
     console.log('已從 API 載入欄位設定：', response)
   } catch (error) {
     console.error('呼叫載入 API 時發生錯誤：', error)
 
     // 如果是 404 錯誤（沒有找到設定），這是正常情況
     if (error.status === 404) {
-      hasStoredSettings.value = false
       console.log('沒有找到儲存的設定，使用預設值')
     } else {
       // 其他錯誤則顯示錯誤訊息
-      hasStoredSettings.value = false
       toast.add({
         severity: 'warn',
         summary: '載入設定失敗',
@@ -396,7 +472,10 @@ const loadSettings = async () => {
   }
 }
 
-// 處理欄位重新排序
+/**
+ * 處理欄位重新排序
+ * @type {(event: ReorderEvent) => void}
+ */
 const onColumnReorder = (event) => {
   // 從 event 中取得新的欄位順序
   if (event.dragIndex !== undefined && event.dropIndex !== undefined) {
@@ -409,10 +488,10 @@ const onColumnReorder = (event) => {
       const newOrder = [...currentDisplayColumns.map((col) => col.field)]
 
       // 移除被拖曳的欄位
-      const draggedField = newOrder.splice(event.dragIndex, 1)[0]
+      const draggedField = newOrder.splice(event.dragIndex, 1)
 
       // 在新位置插入
-      newOrder.splice(event.dropIndex, 0, draggedField)
+      newOrder.splice(event.dropIndex, 0, draggedField[0])
 
       // 更新 columnOrder
       columnOrder.value = newOrder
@@ -422,19 +501,28 @@ const onColumnReorder = (event) => {
   }
 }
 
-// 編輯項目
+/**
+ * 編輯項目
+ * @type {(item: TableDataItem) => void}
+ */
 const editItem = (item) => {
   console.log('編輯項目：', item)
   // 這裡可以加入編輯邏輯
 }
 
-// 查看項目
+/**
+ * 查看項目
+ * @type {(item: TableDataItem) => void}
+ */
 const viewItem = (item) => {
   console.log('查看項目：', item)
   // 這裡可以加入查看邏輯
 }
 
-// 重置設定 - 使用模擬 DELETE API
+/**
+ * 重置設定 - 使用模擬 DELETE API
+ * @type {() => Promise<void>}
+ */
 const resetSettings = async () => {
   try {
     // 顯示載入中的訊息
@@ -446,13 +534,13 @@ const resetSettings = async () => {
     })
 
     // 呼叫模擬 DELETE API
+    /** @type {ApiResponse} */
     const response = await apiService.deleteSettings()
 
     // 重置為預設值
     selectedColumns.value = []
     selectedOptions.value = []
     columnOrder.value = []
-    hasStoredSettings.value = false
 
     toast.add({
       severity: 'info',
@@ -563,15 +651,6 @@ onMounted(async () => {
                 <i class="pi pi-filter mr-1"></i>
                 已選擇 {{ selectedColumns.length }} 個欄位
               </span>
-
-              <!-- 儲存狀態提示 -->
-              <span
-                v-if="hasStoredSettings"
-                class="inline-flex items-center text-purple-600"
-              >
-                <i class="pi pi-database mr-1"></i>
-                使用儲存的設定
-              </span>
             </div>
           </div>
         </template>
@@ -659,8 +738,6 @@ onMounted(async () => {
         </Column>
       </DataTable>
     </div>
-
-    <!-- Toast 組件用於顯示儲存訊息 -->
     <Toast />
   </div>
 </template>
