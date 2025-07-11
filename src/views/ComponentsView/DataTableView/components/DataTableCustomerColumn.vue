@@ -570,7 +570,7 @@ onMounted(async () => {
 <template>
   <div class="mx-auto mt-6 max-w-7xl px-4">
     <!-- DataTable -->
-    <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-lg border bg-white shadow-sm">
       <DataTable
         :value="tableData"
         show-gridlines
@@ -579,7 +579,6 @@ onMounted(async () => {
         resizable-columns
         column-resize-mode="expand"
         @column-reorder="onColumnReorder"
-        class="p-datatable-sm"
         :empty-message="emptyMessage"
         :pt="dataTablePt"
       >
