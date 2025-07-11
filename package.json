@@ -16,6 +16,7 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
+    "@primevue/core": "^4.3.3",
     "@primevue/themes": "^4.2.5",
     "pinia": "^2.2.6",
     "primeicons": "^7.0.0",
