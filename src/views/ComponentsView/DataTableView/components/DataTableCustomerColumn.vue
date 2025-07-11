@@ -32,6 +32,99 @@ const columnOptions = [
 // LocalStorage 的 key
 const STORAGE_KEY = 'dataTable_customColumn_settings'
 
+// 模擬 API 延遲時間（毫秒）
+const API_DELAY = 300
+
+// 模擬 API 服務
+const apiService = {
+  // 模擬 GET API - 獲取設定
+  async getSettings() {
+    // 模擬網路延遲
+    await new Promise((resolve) => setTimeout(resolve, API_DELAY))
+
+    try {
+      const data = localStorage.getItem(STORAGE_KEY)
+      if (!data) {
+        // 模擬 404 Not Found
+        throw new Error('Settings not found')
+      }
+
+      const settings = JSON.parse(data)
+
+      // 模擬 API 回應格式
+      return {
+        status: 200,
+        data: settings,
+        message: '成功取得設定',
+      }
+    } catch (error) {
+      if (error.message === 'Settings not found') {
+        throw {
+          status: 404,
+          message: '找不到儲存的設定',
+        }
+      }
+      throw {
+        status: 500,
+        message: '取得設定時發生錯誤',
+        error: error.message,
+      }
+    }
+  },
+
+  // 模擬 POST API - 儲存設定
+  async saveSettings(settingsData) {
+    // 模擬網路延遲
+    await new Promise((resolve) => setTimeout(resolve, API_DELAY))
+
+    try {
+      const dataToSave = {
+        ...settingsData,
+        savedAt: new Date().toISOString(),
+        version: '1.0',
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave))
+
+      // 模擬 API 回應格式
+      return {
+        status: 201,
+        data: dataToSave,
+        message: '設定儲存成功',
+      }
+    } catch (error) {
+      throw {
+        status: 500,
+        message: '儲存設定時發生錯誤',
+        error: error.message,
+      }
+    }
+  },
+
+  // 模擬 DELETE API - 刪除設定
+  async deleteSettings() {
+    // 模擬網路延遲
+    await new Promise((resolve) => setTimeout(resolve, API_DELAY))
+
+    try {
+      const existed = localStorage.getItem(STORAGE_KEY) !== null
+      localStorage.removeItem(STORAGE_KEY)
+
+      // 模擬 API 回應格式
+      return {
+        status: 200,
+        message: existed ? '設定刪除成功' : '沒有找到要刪除的設定',
+      }
+    } catch (error) {
+      throw {
+        status: 500,
+        message: '刪除設定時發生錯誤',
+        error: error.message,
+      }
+    }
+  },
+}
+
 // 響應式資料 - 直接初始化為正確的值
 const selectedOptions = ref([])
 const selectedColumns = ref([])
@@ -214,76 +307,97 @@ const handleColumnSelection = (values) => {
   selectedColumns.value = validFields
 }
 
-// 儲存設定到 localStorage
-const saveSettings = () => {
+// 儲存設定 - 使用模擬 POST API
+const saveSettings = async () => {
   try {
-    const settings = {
+    // 顯示載入中的訊息
+    toast.add({
+      severity: 'info',
+      summary: '儲存中...',
+      detail: '正在儲存欄位設定',
+      life: 2000,
+    })
+
+    const settingsData = {
       selectedColumns: selectedColumns.value,
       columnOrder: columnOrder.value,
-      savedAt: new Date().toISOString(),
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+
+    // 呼叫模擬 POST API
+    const response = await apiService.saveSettings(settingsData)
+
     hasStoredSettings.value = true
 
     toast.add({
       severity: 'success',
       summary: '儲存成功',
-      detail: '欄位設定已儲存',
+      detail: response.message,
       life: 3000,
     })
+
+    console.log('API 回應：', response)
   } catch (error) {
-    console.error('儲存設定時發生錯誤：', error)
+    console.error('呼叫儲存 API 時發生錯誤：', error)
     toast.add({
       severity: 'error',
       summary: '儲存失敗',
-      detail: '無法儲存欄位設定',
+      detail: error.message || '無法儲存欄位設定',
       life: 3000,
     })
   }
 }
 
-// 從 localStorage 載入設定
-const loadSettings = () => {
+// 載入設定 - 使用模擬 GET API
+const loadSettings = async () => {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const settings = JSON.parse(saved)
+    // 呼叫模擬 GET API
+    const response = await apiService.getSettings()
+    const settings = response.data
 
-      // 驗證載入的資料
-      if (settings.selectedColumns && Array.isArray(settings.selectedColumns)) {
-        // 過濾掉無效的欄位
-        const validSelectedColumns = settings.selectedColumns.filter((field) =>
-          availableColumns.some((col) => col.field === field),
-        )
+    // 驗證載入的資料
+    if (settings.selectedColumns && Array.isArray(settings.selectedColumns)) {
+      // 過濾掉無效的欄位
+      const validSelectedColumns = settings.selectedColumns.filter((field) =>
+        availableColumns.some((col) => col.field === field),
+      )
 
-        selectedColumns.value = validSelectedColumns
-        selectedOptions.value = validSelectedColumns
-      }
-
-      if (settings.columnOrder && Array.isArray(settings.columnOrder)) {
-        // 過濾掉無效的欄位順序
-        const validColumnOrder = settings.columnOrder.filter((field) =>
-          availableColumns.some((col) => col.field === field),
-        )
-
-        columnOrder.value = validColumnOrder
-      }
-
-      hasStoredSettings.value = true
-      console.log('已載入儲存的欄位設定', settings)
-    } else {
-      hasStoredSettings.value = false
+      selectedColumns.value = validSelectedColumns
+      selectedOptions.value = validSelectedColumns
     }
+
+    if (settings.columnOrder && Array.isArray(settings.columnOrder)) {
+      // 過濾掉無效的欄位順序
+      const validColumnOrder = settings.columnOrder.filter((field) =>
+        availableColumns.some((col) => col.field === field),
+      )
+
+      columnOrder.value = validColumnOrder
+    }
+
+    hasStoredSettings.value = true
+    console.log('已從 API 載入欄位設定：', response)
   } catch (error) {
-    console.error('載入設定時發生錯誤：', error)
-    hasStoredSettings.value = false
+    console.error('呼叫載入 API 時發生錯誤：', error)
+
+    // 如果是 404 錯誤（沒有找到設定），這是正常情況
+    if (error.status === 404) {
+      hasStoredSettings.value = false
+      console.log('沒有找到儲存的設定，使用預設值')
+    } else {
+      // 其他錯誤則顯示錯誤訊息
+      hasStoredSettings.value = false
+      toast.add({
+        severity: 'warn',
+        summary: '載入設定失敗',
+        detail: error.message || '無法載入欄位設定',
+        life: 3000,
+      })
+    }
   }
 }
 
 // 處理欄位重新排序
 const onColumnReorder = (event) => {
-  console.log('Column reordered:', event)
-
   // 從 event 中取得新的欄位順序
   if (event.dragIndex !== undefined && event.dropIndex !== undefined) {
     const currentDisplayColumns = displayColumns.value
@@ -320,10 +434,19 @@ const viewItem = (item) => {
   // 這裡可以加入查看邏輯
 }
 
-// 重置設定
-const resetSettings = () => {
+// 重置設定 - 使用模擬 DELETE API
+const resetSettings = async () => {
   try {
-    localStorage.removeItem(STORAGE_KEY)
+    // 顯示載入中的訊息
+    toast.add({
+      severity: 'info',
+      summary: '重置中...',
+      detail: '正在清除欄位設定',
+      life: 2000,
+    })
+
+    // 呼叫模擬 DELETE API
+    const response = await apiService.deleteSettings()
 
     // 重置為預設值
     selectedColumns.value = []
@@ -334,23 +457,25 @@ const resetSettings = () => {
     toast.add({
       severity: 'info',
       summary: '重置成功',
-      detail: '已清除儲存的欄位設定',
+      detail: response.message,
       life: 3000,
     })
+
+    console.log('API 回應：', response)
   } catch (error) {
-    console.error('重置設定時發生錯誤：', error)
+    console.error('呼叫重置 API 時發生錯誤：', error)
     toast.add({
       severity: 'error',
       summary: '重置失敗',
-      detail: '無法清除欄位設定',
+      detail: error.message || '無法清除欄位設定',
       life: 3000,
     })
   }
 }
 
 // 組件掛載時載入設定
-onMounted(() => {
-  loadSettings()
+onMounted(async () => {
+  await loadSettings()
 })
 </script>
 
