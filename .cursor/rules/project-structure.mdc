@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+---
+
+# PrimeVue 4 練習專案結構指南
+
+## 主要進入點
+- 主要進入點是 [main.js](mdc:src/main.js)
+- 根組件是 [App.vue](mdc:src/App.vue) 使用 [DefaultLayout.vue](mdc:src/layout/DefaultLayout.vue)
+- 路由配置在 [index.js](mdc:src/router/index.js)
+
+## 核心配置檔案
+- [package.json](mdc:package.json) - 專案依賴和腳本
+- [vite.config.js](mdc:vite.config.js) - Vite 建置配置和自動導入設定
+- [tailwind.config.js](mdc:tailwind.config.js) - Tailwind CSS 配置
+- [eslint.config.js](mdc:eslint.config.js) - ESLint 規則配置
+
+## 專案架構模式
+- 使用 Vue 3 Composition API
+- PrimeVue 4 組件庫
+- Vite 作為建置工具
+- Pinia 作為狀態管理
+- Vue Router 4 用於路由
+- Tailwind CSS + PrimeUI 用於樣式
+
+## 目錄結構
+- `src/views/ComponentsView/` - 各種 PrimeVue 組件的範例頁面
+- `src/components/` - 公用組件
+- `src/stores/` - Pinia 狀態管理
+- `docs/` - VitePress 文件
+- 每個組件視圖都有自己的 `components/` 和 `markdown/` 子目錄
+
+## 自動導入功能
+- Vue、Vue Router、Pinia 函式會自動導入
+- PrimeVue 組件會自動導入
+- Markdown 檔案可以直接作為模組導入

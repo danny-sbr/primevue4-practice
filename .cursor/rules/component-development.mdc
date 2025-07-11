@@ -1,0 +1,49 @@
+---
+globs: src/views/ComponentsView/**/*.vue
+---
+
+# 組件開發指南
+
+## 組件視圖開發模式
+基於現有的模式，新建組件視圖時請遵循：
+
+1. **創建目錄結構**：
+   ```
+   src/views/ComponentsView/NewComponentView/
+   ├── NewComponentView.vue
+   ├── components/
+   ├── markdown/
+   └── types/ (可選)
+   ```
+
+2. **主視圖檔案結構**：
+   ```vue
+   <script setup>
+   import ComponentDisplay from './components/ComponentDisplay.vue'
+   import ComponentExplain from './markdown/ComponentExplain.md'
+   import MarkdownIt from '@/components/MarkdownIt.vue'
+   </script>
+
+   <template>
+     <ComponentDisplay />
+     <MarkdownIt :source="ComponentExplain" />
+   </template>
+   ```
+
+3. **更新路由配置**：
+   在 [router/index.js](mdc:src/router/index.js) 的 `/components` 子路由中添加新路由
+
+## 組件命名規範
+- 主視圖：`ComponentNameView.vue`
+- 展示組件：`ComponentNameDisplay.vue`
+- 特定功能組件：`ComponentNameSpecificFeature.vue`
+
+## 組件邏輯組織
+- 把複雜的展示邏輯拆分到 `components/` 子目錄
+- 資料服務放在專用的 `.js` 檔案中（如 [productService.js](mdc:src/views/ComponentsView/DataTableView/components/productService.js)）
+- TypeScript 類型定義放在 `types/` 目錄
+
+## 開發最佳實踐
+- 每個組件專注於展示一個 PrimeVue 組件的特定功能
+- 保持組件的獨立性和可重用性
+- 提供清晰的程式碼範例和說明文件

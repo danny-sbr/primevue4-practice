@@ -1,0 +1,32 @@
+---
+globs: *.md
+---
+
+# 文件撰寫標準
+
+## Markdown 檔案組織
+- 每個組件視圖都應該有對應的 `markdown/` 目錄
+- 說明檔案命名格式：`ComponentNameExplain.md`
+- 文件使用繁體中文撰寫
+
+## 文件內容結構
+1. **組件介紹** - 簡述組件功能和用途
+2. **基本用法** - 提供基本使用範例
+3. **API 參考** - 重要屬性和事件說明
+4. **進階用法** - 複雜場景的使用方式
+5. **注意事項** - 特殊注意點或限制
+
+## VitePress 文件
+- `docs/` 目錄用於 VitePress 文件系統
+- 主要 API 文件放在 `docs/primevue_doc/` 下
+- 範例和說明放在對應的組件目錄中
+
+## Markdown 在 Vue 中的使用
+- Markdown 檔案可以直接導入到 Vue 組件中
+- 使用 [MarkdownIt.vue](mdc:src/components/MarkdownIt.vue) 組件渲染內容
+- 支援 Prism.js 語法高亮
+
+## 撰寫風格
+- 使用繁體中文台灣常見用語
+- 技術術語保持一致性
+- 提供清晰的程式碼範例

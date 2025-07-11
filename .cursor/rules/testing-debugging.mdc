@@ -1,0 +1,38 @@
+---
+globs: *.test.js,*.spec.js,*.config.js
+---
+
+# 測試與除錯指南
+
+## 開發伺服器
+- 使用 `pnpm dev` 啟動開發伺服器（預設端口：5570）
+- 開發工具已配置 Vue DevTools
+- 支援熱重載和模組替換
+
+## 程式碼品質工具
+- ESLint：`pnpm lint` 執行程式碼檢查並自動修復
+- Prettier：`pnpm format` 格式化程式碼
+- 配置檔案：[eslint.config.js](mdc:eslint.config.js)
+
+## 單元測試
+- 使用 Vitest 進行單元測試
+- 執行測試：`pnpm test:unit`
+- 測試環境：jsdom
+- 測試配置：[vitest.config.js](mdc:vitest.config.js)
+
+## 文件系統
+- VitePress 文件：`pnpm docs:dev` 啟動文件開發伺服器（端口：3150）
+- 建置文件：`pnpm docs:build`
+- 預覽文件：`pnpm docs:preview`
+
+## 除錯最佳實踐
+- 利用 Vue DevTools 檢查組件狀態
+- 使用瀏覽器開發者工具檢查 Console 錯誤
+- 檢查網路請求和回應
+- 利用 Vue 的響應式除錯功能
+
+## 常見問題排解
+- PrimeVue 組件未顯示：檢查自動導入配置
+- 樣式問題：確認 Tailwind CSS 類別是否正確
+- 路由問題：檢查 [router/index.js](mdc:src/router/index.js) 配置
+- Markdown 載入問題：確認檔案路徑和 Vite 插件配置

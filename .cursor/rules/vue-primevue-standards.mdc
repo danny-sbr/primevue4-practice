@@ -1,0 +1,40 @@
+---
+globs: *.vue,*.js
+---
+
+# Vue & PrimeVue 編碼標準
+
+## Vue 組件結構
+- 使用 `<script setup>` 語法
+- 組件導入放在檔案最上方
+- 使用 Composition API
+- 遵循 Vue 3 最佳實踐
+
+## PrimeVue 組件使用
+- PrimeVue 組件會自動導入（透過 unplugin-vue-components）
+- 不需要手動導入 PrimeVue 組件
+- 使用 PrimeVue 4 API 和屬性
+- 參考 [PrimeVue 文件](https://primevue.org/) 獲取正確的 API
+
+## 組件組織模式
+每個組件視圖應該遵循以下結構：
+```
+ComponentNameView/
+├── ComponentNameView.vue     # 主視圖檔案
+├── components/              # 子組件
+│   └── DisplayComponent.vue
+├── markdown/               # 說明文件
+│   └── ExplainFile.md
+└── types/                 # TypeScript 類型定義（可選）
+    └── ComponentName.d.ts
+```
+
+## 導入規範
+- 使用 `@/` 別名表示 src 目錄
+- 組件相對導入使用 `./` 或 `../`
+- Markdown 檔案可以直接導入為字串
+
+## 樣式處理
+- 使用 Tailwind CSS 類別
+- 利用 tailwindcss-primeui 的整合功能
+- 避免在組件中寫 CSS，優先使用 Tailwind 類別

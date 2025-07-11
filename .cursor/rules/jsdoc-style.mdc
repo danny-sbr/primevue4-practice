@@ -1,0 +1,177 @@
+---
+alwaysApply: true
+---
+# Cursor Rules：使用 TypeScript 風格撰寫 JSDoc
+
+> **目的**：當 LLM 產生 JavaScript／Vue 程式碼時，必須依循本檔規範，以 TypeScript 風格的 JSDoc 標註完整型別，確保 IntelliSense 與型別安全。
+
+
+## 1. 基本原則
+
+1. **預設語言**：所有註解與說明使用繁體中文（台灣用語），程式碼使用英文命名。
+2. **JSDoc 風格**：採用 TypeScript 風格的 `@type`／`@typedef`／`import()`，避免傳統 `@param` `@returns` 多行冗述。
+3. **導入外部型別**：
+
+   * **單一型別** → `/** @typedef {import('./types').User} User */`
+   * **多型別或泛型** → 直接在 `@type` 內使用 `import('套件').Type<T>`
+4. **共用型別**：集中於 `*.d.ts` 檔並以 ES Module 匯出，再透過 `import()` 引入。
+5. **型別守衛**：必要時使用自訂 `value is SomeType` 讓編輯器進行型別窄化。
+6. **Vue 檔案**：於 `<script setup>` 中的 `defineProps` 型別標註規則：
+   - **原始型別**（`string`、`number`、`boolean`、`Date`）：直接使用 Vue 原生語法
+   - **複雜型別**（物件、陣列、聯合型別、介面等）：使用 `/** @type {import('vue').PropType<...>} */` 標註
+7. **命名慣例**：
+
+   * 介面 / 型別：使用 `PascalCase`。
+   * 變數／函式：使用 `camelCase`。
+   * 列舉：使用全大寫 `SCREAMING_SNAKE_CASE` 或 `PascalCase` 依實務需求。
+
+
+## 2. 常用範例
+
+### 2.1 函式
+
+```js
+/** @type {(dog: Dog) => void} */
+const printDogInfo = (dog) => {
+  console.log(dog.name)
+}
+
+/** @type {(weight: number, height: number) => number} */
+const calculateBMI = (weight, height) => weight / (height * height)
+```
+
+### 2.2 變數
+
+```js
+/** @type {string[]} */
+const dogNames = ['小黑', '球球', '毛毛']
+
+/** @type {{ id: string, name: string, age?: number }} */
+const dog = { id: 'd1', name: '球球' }
+```
+
+### 2.3 .d.ts 與 import()
+
+```ts
+// types.d.ts
+export interface User {
+  name: string
+  age: number
+}
+```
+
+```js
+/** @typedef {import('./types').User} User */
+/** @type {User} */
+const user = { name: 'Danny', age: 30 }
+```
+
+### 2.4 與第三方套件結合（Axios 範例）
+
+```js
+import axios from 'axios'
+/** @import {AxiosResponse, AxiosError} from 'axios' */
+
+/**
+ * @typedef {{ id: number, name: string, active: boolean }} ApiData
+ */
+
+/** @type {(userId: number) => Promise<AxiosResponse<ApiData>>} */
+const fetchUser = async (userId) => axios.get(`/api/user/${userId}`)
+```
+
+### 2.5 型別守衛
+
+```js
+import axios from 'axios'
+
+/** @typedef {{ message: string }} SuccessResult */
+/** @typedef {{ errorCode: number }} FailResult */
+/** @typedef {SuccessResult | FailResult} ApiResult */
+
+/**
+ * @type {(res: import('axios').AxiosResponse<ApiResult>) =>
+ *        res is import('axios').AxiosResponse<SuccessResult>}
+ */
+const isSuccess = (res) => 'message' in res.data
+```
+
+### 2.6 Vue 3 `<script setup>`
+
+```vue
+<script setup>
+/**
+ * 透過 PropType 宣告陣列內含帶有 previewURL 的 File
+ * 原始型別（string、number、boolean、Date）直接使用 Vue 原生語法
+ */
+const props = defineProps({
+  isShouldShow: {
+    type: Boolean,
+    required: true,
+  },
+  /** @type {import('vue').PropType<(File & { previewURL?: string })[]>} */
+  items: { type: Array, default: () => [] },
+  selectedButton: { type: String, default: '全部' },
+})
+</script>
+```
+
+
+## 3. 何時撰寫型別
+
+1. **複雜資料結構**：具有巢狀屬性或跨檔案重用時。
+2. **API 請求／回應**：欄位眾多且易出錯時。
+3. **函式介面**：工具函式或封裝函式需明確對外契約。
+
+## 4. 進階範例
+
+### 4.1 動物資料模型
+
+```ts
+export type Animal = {
+  id: number
+  name: string
+  species: AnimalSpecies
+  gender?: AnimalGender
+  birth?: Date
+  note?: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+```
+
+### 4.2 API 型別組合
+
+```ts
+export type CreateAnimalPayload = Omit<Animal, 'id' | 'createdAt' | 'updatedAt'>
+export type UpdateAnimalPayload = Omit<Animal, 'createdAt' | 'updatedAt'>
+
+export type ApiMsg<T extends string> = { message: T }
+export type CreateAnimalFail = ApiMsg<'名稱重複'>
+export type UpdateAnimalSuccess = ApiMsg<'修改成功'>
+
+export type DeleteAnimalSuccess = ApiMsg<'刪除成功'>
+export type DeleteAnimalPayload = { id: number }
+
+export type QueryAnimalFail = import('axios').AxiosError<any, any>
+export type QueryAnimalSuccess = import('axios').AxiosResponse<Animal[]>
+export type QueryAnimalResponse = QueryAnimalFail | QueryAnimalSuccess
+
+export type DeleteAnimalResponse = import('axios').AxiosResponse<DeleteAnimalSuccess, DeleteAnimalPayload>
+```
+
+### 4.3 函式帶入與回傳
+
+```js
+/** @type {(payload: CreateAnimalPayload) => Promise<import('axios').AxiosResponse<Animal>>} */
+const createAnimal = async (payload) => axios.post('/api/animals', payload)
+```
+
+## 5. LLM 生成指引 Checklist
+
+* [ ] 所有新函式、變數、常數必須含 `@type` 或 `@typedef`。
+* [ ] 引入第三方套件型別請使用 `import('package').Type`。
+* [ ] 共用型別定義放於 `.d.ts`，程式碼檔案僅引用。
+* [ ] Vue `<script setup>` 中：原始型別直接使用 Vue 原生語法，複雜型別才使用 `PropType` 配合 `@type` 註解。
+* [ ] 如有多型別回傳，提供 **型別守衛** 協助窄化。
+* [ ] 註解務必使用繁體中文（台灣用語）。
