@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import MultiSelect from 'primevue/multiselect'
@@ -165,9 +165,24 @@ const columnOrder = ref([]) // 新增：追蹤欄位順序
 // 計算是否顯示全部
 /** @type {import('vue').ComputedRef<boolean>} */
 const isShowAll = computed(() => {
+  // 確保 selectedOptions 和 availableColumns 都是有效的陣列
+  if (
+    !Array.isArray(selectedOptions.value) ||
+    !Array.isArray(availableColumns)
+  ) {
+    return false
+  }
+
   // 檢查所有可用欄位是否都被選中
   /** @type {string[]} */
-  const allFieldValues = availableColumns.map((col) => col.field)
+  const allFieldValues = availableColumns
+    .filter((col) => col && typeof col.field === 'string')
+    .map((col) => col.field)
+
+  if (allFieldValues.length === 0) {
+    return false
+  }
+
   return allFieldValues.every((field) => selectedOptions.value.includes(field))
 })
 
@@ -182,20 +197,59 @@ const isShowAll = computed(() => {
  * @type {import('vue').ComputedRef<ColumnConfig[]>}
  */
 const displayColumns = computed(() => {
+  // 確保 availableColumns 存在且為陣列
+  if (!Array.isArray(availableColumns) || availableColumns.length === 0) {
+    return []
+  }
+
+  /**
+   * 驗證欄位配置對象是否有效
+   * @type {(col: any) => col is ColumnConfig}
+   */
+  const isValidColumn = (col) => {
+    return (
+      col &&
+      typeof col === 'object' &&
+      typeof col.field === 'string' &&
+      col.field.trim() !== '' &&
+      typeof col.header === 'string' &&
+      col.header.trim() !== '' &&
+      typeof col.minWidth === 'number' &&
+      col.minWidth > 0 &&
+      typeof col.sortable === 'boolean'
+    )
+  }
+
   // 【第一步】檢查是否要顯示全部欄位
   if (isShowAll.value) {
+    // 確保 selectedColumns 和 selectedOptions 都包含所有欄位
+    const allValidFields = availableColumns
+      .filter(isValidColumn)
+      .map((col) => col.field)
+
     // 【情況 1-A】顯示全部欄位且有自訂排序
-    if (columnOrder.value.length > 0) {
+    if (Array.isArray(columnOrder.value) && columnOrder.value.length > 0) {
       /** @type {ColumnConfig[]} */
       const orderedColumns = [] // 儲存排序後的欄位
       /** @type {ColumnConfig[]} */
-      const remainingColumns = [...availableColumns] // 複製所有可用欄位，避免修改原陣列
+      const remainingColumns = availableColumns.filter(isValidColumn) // 只保留有效的欄位
 
       // 【步驟 1-A-1】先按照使用者自訂的 columnOrder 順序加入欄位
       for (const fieldName of columnOrder.value) {
+        // 確保 fieldName 是有效的字串且在所有可用欄位中
+        if (
+          typeof fieldName !== 'string' ||
+          !fieldName.trim() ||
+          !allValidFields.includes(fieldName)
+        ) {
+          continue
+        }
+
         // 在所有可用欄位中找到對應的欄位物件
         /** @type {ColumnConfig | undefined} */
-        const column = availableColumns.find((col) => col.field === fieldName)
+        const column = availableColumns.find(
+          (col) => isValidColumn(col) && col.field === fieldName,
+        )
         if (column) {
           orderedColumns.push(column) // 加入到排序後的陣列
 
@@ -212,22 +266,25 @@ const displayColumns = computed(() => {
 
       // 【步驟 1-A-2】將未在自訂順序中的剩餘欄位按原始順序加入最後
       orderedColumns.push(...remainingColumns)
-      return orderedColumns
+      return orderedColumns.filter(isValidColumn)
     }
 
     // 【情況 1-B】顯示全部欄位但沒有自訂排序，直接返回原始順序
-    return availableColumns
+    return availableColumns.filter(isValidColumn)
   }
 
   // 【第二步】檢查是否沒有選擇任何欄位
-  if (selectedColumns.value.length === 0) {
+  if (
+    !Array.isArray(selectedColumns.value) ||
+    selectedColumns.value.length === 0
+  ) {
     // 【情況 2】沒有選擇任何欄位，返回空陣列（顯示空表格）
     return []
   }
 
   // 【第三步】處理有選擇特定欄位的情況
   // 【情況 3-A】有選擇欄位且有自訂排序
-  if (columnOrder.value.length > 0) {
+  if (Array.isArray(columnOrder.value) && columnOrder.value.length > 0) {
     /** @type {ColumnConfig[]} */
     const orderedColumns = [] // 儲存排序後的欄位
     /** @type {string[]} */
@@ -235,10 +292,17 @@ const displayColumns = computed(() => {
 
     // 【步驟 3-A-1】先按照 columnOrder 順序加入已選中的欄位
     for (const fieldName of columnOrder.value) {
+      // 確保 fieldName 是有效的字串
+      if (typeof fieldName !== 'string' || !fieldName.trim()) {
+        continue
+      }
+
       // 檢查此欄位是否在使用者選中的欄位中
       if (selectedColumns.value.includes(fieldName)) {
         /** @type {ColumnConfig | undefined} */
-        const column = availableColumns.find((col) => col.field === fieldName)
+        const column = availableColumns.find(
+          (col) => isValidColumn(col) && col.field === fieldName,
+        )
         if (column) {
           orderedColumns.push(column) // 加入到排序後的陣列
 
@@ -254,19 +318,26 @@ const displayColumns = computed(() => {
 
     // 【步驟 3-A-2】加入剩餘的已選中欄位（新選中但不在自訂順序中的欄位）
     for (const fieldName of remainingFields) {
+      // 確保 fieldName 是有效的字串
+      if (typeof fieldName !== 'string' || !fieldName.trim()) {
+        continue
+      }
+
       /** @type {ColumnConfig | undefined} */
-      const column = availableColumns.find((col) => col.field === fieldName)
+      const column = availableColumns.find(
+        (col) => isValidColumn(col) && col.field === fieldName,
+      )
       if (column) {
         orderedColumns.push(column)
       }
     }
 
-    return orderedColumns
+    return orderedColumns.filter(isValidColumn)
   }
 
   // 【情況 3-B】有選擇欄位但沒有自訂排序，按原始順序過濾
-  return availableColumns.filter((col) =>
-    selectedColumns.value.includes(col.field),
+  return availableColumns.filter(
+    (col) => isValidColumn(col) && selectedColumns.value.includes(col.field),
   )
 })
 
@@ -368,16 +439,48 @@ const multiSelectPt = {
 const handleColumnSelection = (values) => {
   // 確保 values 是陣列且過濾掉空值
   const cleanValues = Array.isArray(values)
-    ? values.filter((v) => v != null && v !== '')
+    ? values.filter((v) => v != null && v !== '' && typeof v === 'string')
     : []
 
   // 過濾有效的欄位值
-  const validFields = cleanValues.filter((v) =>
-    availableColumns.some((col) => col.field === v),
+  const validFields = cleanValues.filter(
+    (v) =>
+      typeof v === 'string' &&
+      v.trim() !== '' &&
+      availableColumns.some((col) => col && col.field === v),
   )
 
+  // 檢查是否為全選狀態
+  const allFieldValues = availableColumns
+    .filter((col) => col && typeof col.field === 'string')
+    .map((col) => col.field)
+
+  const isSelectingAll =
+    validFields.length === allFieldValues.length &&
+    allFieldValues.every((field) => validFields.includes(field))
+
+  // 設定選擇的欄位
   selectedOptions.value = validFields
   selectedColumns.value = validFields
+
+  // 處理 columnOrder 的邏輯
+  if (validFields.length === 0) {
+    // 如果沒有選擇任何欄位，清空 columnOrder
+    columnOrder.value = []
+  } else if (isSelectingAll) {
+    // 如果是全選，保留現有的 columnOrder（如果有的話）
+    // 但要確保只包含有效的欄位
+    const validExistingOrder = columnOrder.value.filter((field) =>
+      validFields.includes(field),
+    )
+    columnOrder.value = validExistingOrder
+  } else {
+    // 部分選擇時，保留與選中欄位相關的順序
+    const validExistingOrder = columnOrder.value.filter((field) =>
+      validFields.includes(field),
+    )
+    columnOrder.value = validExistingOrder
+  }
 }
 
 /**
@@ -433,11 +536,19 @@ const loadSettings = async () => {
     /** @type {SettingsData} */
     const settings = response.data
 
+    // 先重置所有值，避免載入過程中的計算屬性錯誤
+    columnOrder.value = []
+    selectedColumns.value = []
+    selectedOptions.value = []
+
     // 驗證載入的資料
     if (settings.selectedColumns && Array.isArray(settings.selectedColumns)) {
       // 過濾掉無效的欄位
-      const validSelectedColumns = settings.selectedColumns.filter((field) =>
-        availableColumns.some((col) => col.field === field),
+      const validSelectedColumns = settings.selectedColumns.filter(
+        (field) =>
+          typeof field === 'string' &&
+          field.trim() &&
+          availableColumns.some((col) => col.field === field),
       )
 
       selectedColumns.value = validSelectedColumns
@@ -446,8 +557,11 @@ const loadSettings = async () => {
 
     if (settings.columnOrder && Array.isArray(settings.columnOrder)) {
       // 過濾掉無效的欄位順序
-      const validColumnOrder = settings.columnOrder.filter((field) =>
-        availableColumns.some((col) => col.field === field),
+      const validColumnOrder = settings.columnOrder.filter(
+        (field) =>
+          typeof field === 'string' &&
+          field.trim() &&
+          availableColumns.some((col) => col.field === field),
       )
 
       columnOrder.value = validColumnOrder
@@ -460,6 +574,10 @@ const loadSettings = async () => {
     // 如果是 404 錯誤（沒有找到設定），這是正常情況
     if (error.status === 404) {
       console.log('沒有找到儲存的設定，使用預設值')
+      // 確保使用預設值
+      columnOrder.value = []
+      selectedColumns.value = []
+      selectedOptions.value = []
     } else {
       // 其他錯誤則顯示錯誤訊息
       toast.add({
@@ -480,23 +598,68 @@ const onColumnReorder = (event) => {
   // 從 event 中取得新的欄位順序
   if (event.dragIndex !== undefined && event.dropIndex !== undefined) {
     const currentDisplayColumns = displayColumns.value
-    const draggedColumn = currentDisplayColumns[event.dragIndex]
-    const dropColumn = currentDisplayColumns[event.dropIndex]
 
-    if (draggedColumn && dropColumn) {
-      // 建立新的欄位順序
-      const newOrder = [...currentDisplayColumns.map((col) => col.field)]
+    // 確保索引有效且欄位存在
+    if (
+      Array.isArray(currentDisplayColumns) &&
+      currentDisplayColumns.length > 0 &&
+      event.dragIndex >= 0 &&
+      event.dropIndex >= 0 &&
+      event.dragIndex < currentDisplayColumns.length &&
+      event.dropIndex < currentDisplayColumns.length
+    ) {
+      const draggedColumn = currentDisplayColumns[event.dragIndex]
+      const dropColumn = currentDisplayColumns[event.dropIndex]
 
-      // 移除被拖曳的欄位
-      const draggedField = newOrder.splice(event.dragIndex, 1)
+      // 確保拖曳的欄位都是有效的對象
+      if (
+        draggedColumn &&
+        dropColumn &&
+        typeof draggedColumn === 'object' &&
+        typeof dropColumn === 'object' &&
+        draggedColumn.field &&
+        dropColumn.field &&
+        typeof draggedColumn.field === 'string' &&
+        typeof dropColumn.field === 'string'
+      ) {
+        // 建立新的欄位順序，只取有效的欄位
+        /** @type {string[]} */
+        const validFields = currentDisplayColumns
+          .filter(
+            (col) =>
+              col &&
+              typeof col === 'object' &&
+              col.field &&
+              typeof col.field === 'string',
+          )
+          .map((col) => col.field)
 
-      // 在新位置插入
-      newOrder.splice(event.dropIndex, 0, draggedField[0])
+        if (validFields.length > 0) {
+          const newOrder = [...validFields]
 
-      // 更新 columnOrder
-      columnOrder.value = newOrder
+          // 移除被拖曳的欄位
+          const draggedField = newOrder.splice(event.dragIndex, 1)
 
-      console.log('更新後的欄位順序：', newOrder)
+          // 在新位置插入
+          if (draggedField.length > 0 && typeof draggedField[0] === 'string') {
+            newOrder.splice(event.dropIndex, 0, draggedField[0])
+          }
+
+          // 過濾掉無效的欄位並更新 columnOrder
+          const validNewOrder = newOrder.filter(
+            (field) =>
+              typeof field === 'string' &&
+              field.trim() !== '' &&
+              availableColumns.some((col) => col && col.field === field),
+          )
+
+          // 使用 nextTick 確保 DOM 更新完成後再更新 columnOrder
+          nextTick(() => {
+            columnOrder.value = validNewOrder
+            console.log('更新後的欄位順序：', validNewOrder)
+          })
+        }
+      }
     }
   }
 }
@@ -537,10 +700,10 @@ const resetSettings = async () => {
     /** @type {ApiResponse} */
     const response = await apiService.deleteSettings()
 
-    // 重置為預設值
+    // 重置為預設值 - 按順序設定以避免計算屬性錯誤
+    columnOrder.value = []
     selectedColumns.value = []
     selectedOptions.value = []
-    columnOrder.value = []
 
     toast.add({
       severity: 'info',
@@ -561,9 +724,42 @@ const resetSettings = async () => {
   }
 }
 
+// 監控狀態變化以便調試
+watch(
+  [selectedColumns, selectedOptions, columnOrder],
+  ([newSelectedColumns, newSelectedOptions, newColumnOrder]) => {
+    // 確保狀態一致性
+    if (newSelectedColumns.length !== newSelectedOptions.length) {
+      console.warn('狀態不一致：selectedColumns 和 selectedOptions 長度不匹配')
+    }
+
+    // 確保 columnOrder 中的欄位都在 selectedColumns 中（當不是全選狀態時）
+    if (newColumnOrder.length > 0 && !isShowAll.value) {
+      const invalidOrderFields = newColumnOrder.filter(
+        (field) => !newSelectedColumns.includes(field),
+      )
+      if (invalidOrderFields.length > 0) {
+        console.warn(
+          '狀態不一致：columnOrder 包含未選中的欄位：',
+          invalidOrderFields,
+        )
+      }
+    }
+  },
+  { deep: true },
+)
+
 // 組件掛載時載入設定
 onMounted(async () => {
-  await loadSettings()
+  try {
+    await loadSettings()
+  } catch (error) {
+    console.error('載入設定時發生錯誤：', error)
+    // 如果載入失敗，確保使用預設值
+    columnOrder.value = []
+    selectedColumns.value = []
+    selectedOptions.value = []
+  }
 })
 </script>
 
@@ -605,6 +801,7 @@ onMounted(async () => {
                   :show-clear="true"
                   data-key="value"
                   :pt="multiSelectPt"
+                  :loading="false"
                 />
               </div>
 
@@ -656,22 +853,24 @@ onMounted(async () => {
         <!-- 動態渲染選中的欄位 -->
         <Column
           v-for="col in displayColumns"
-          :key="col.field"
-          :field="col.field"
-          :header="col.header"
-          :style="`min-width: ${col.minWidth}px;`"
-          :sortable="col.sortable"
-          :class="col.class"
+          :key="col && col.field ? col.field : `col-${Math.random()}`"
+          :field="col && col.field ? col.field : ''"
+          :header="col && col.header ? col.header : ''"
+          :style="col && col.minWidth ? `min-width: ${col.minWidth}px;` : ''"
+          :sortable="
+            col && typeof col.sortable === 'boolean' ? col.sortable : false
+          "
+          :class="col && col.class ? col.class : ''"
         >
           <!-- ID 欄位 -->
-          <template v-if="col.field === 'id'" #body="slotProps">
+          <template v-if="col && col.field === 'id'" #body="slotProps">
             <span class="font-mono text-sm text-gray-600">
               {{ slotProps.data.id }}
             </span>
           </template>
 
           <!-- 姓名欄位 -->
-          <template v-if="col.field === 'name'" #body="slotProps">
+          <template v-if="col && col.field === 'name'" #body="slotProps">
             <div class="flex items-center">
               <div
                 class="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100"
@@ -685,7 +884,7 @@ onMounted(async () => {
           </template>
 
           <!-- 電子郵件欄位 -->
-          <template v-if="col.field === 'email'" #body="slotProps">
+          <template v-if="col && col.field === 'email'" #body="slotProps">
             <a
               :href="`mailto:${slotProps.data.email}`"
               class="text-blue-600 hover:text-blue-800 hover:underline"
@@ -695,12 +894,12 @@ onMounted(async () => {
           </template>
 
           <!-- 部門欄位 -->
-          <template v-if="col.field === 'department'" #body="slotProps">
+          <template v-if="col && col.field === 'department'" #body="slotProps">
             <Tag :value="slotProps.data.department" rounded />
           </template>
 
           <!-- 電話欄位 -->
-          <template v-if="col.field === 'phone'" #body="slotProps">
+          <template v-if="col && col.field === 'phone'" #body="slotProps">
             <a
               :href="`tel:${slotProps.data.phone}`"
               class="font-mono text-sm text-gray-600 hover:text-gray-800"
@@ -710,12 +909,12 @@ onMounted(async () => {
           </template>
 
           <!-- 狀態欄位 -->
-          <template v-if="col.field === 'status'" #body="slotProps">
+          <template v-if="col && col.field === 'status'" #body="slotProps">
             <Tag :value="slotProps.data.status" rounded />
           </template>
 
           <!-- 操作欄位 -->
-          <template v-if="col.field === 'action'" #body="slotProps">
+          <template v-if="col && col.field === 'action'" #body="slotProps">
             <div class="flex gap-2">
               <Button
                 icon="pi pi-pencil"
