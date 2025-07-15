@@ -67,10 +67,6 @@ const selectedOptions = ref([])
 const displayColumns = ref(originalSelectedOptions)
 
 const onColumnReorder = (event) => {
-  console.log('欄位重新排序：', event)
-  console.log('拖拉來源 index:', event.dragIndex)
-  console.log('放置目標 index:', event.dropIndex)
-
   // 複製一份 displayColumns 陣列
   const newOrderColumns = [...displayColumns.value]
 
@@ -85,40 +81,52 @@ const onColumnReorder = (event) => {
 }
 
 const updateSelectedOptions = (val) => {
-  console.log('updateSelectedOptions selectedOptions', selectedOptions.value)
-  console.log('updateSelectedOptions val', val)
-
   let currentSelectedOptions = []
-  if (val.length > selectedOptions.value.length) {
-    currentSelectedOptions = val.filter(
-      (item) =>
-        !selectedOptions.value.some(
-          (selectedItem) => selectedItem.value === item.value,
-        ),
-    )
-  } else if (val.length < selectedOptions.value.length) {
-    currentSelectedOptions = selectedOptions.value.filter(
-      (item) => !val.some((selectedItem) => selectedItem.value === item.value),
-    )
-  }
 
-  const currentSelectedOptionsValue = currentSelectedOptions[0].value
-  const currentSelectedOptionsIsShow = currentSelectedOptions[0].isShow
+  const isSelectAll = val.length === originalSelectedOptions.length
+  const isDeselectAll = val.length === 0
 
-  displayColumns.value = displayColumns.value.map((col) => {
-    if (col.value === currentSelectedOptionsValue) {
-      col.isShow = !currentSelectedOptionsIsShow
+  if (isSelectAll) {
+    currentSelectedOptions = originalSelectedOptions
+    displayColumns.value = displayColumns.value.map((col) => {
+      col.isShow = true
+      return col
+    })
+  } else if (isDeselectAll) {
+    currentSelectedOptions = []
+    displayColumns.value = displayColumns.value.map((col) => {
+      col.isShow = false
+      return col
+    })
+  } else {
+    if (val.length > selectedOptions.value.length) {
+      currentSelectedOptions = val.filter(
+        (item) =>
+          !selectedOptions.value.some(
+            (selectedItem) => selectedItem.value === item.value,
+          ),
+      )
+    } else if (val.length < selectedOptions.value.length) {
+      currentSelectedOptions = selectedOptions.value.filter(
+        (item) =>
+          !val.some((selectedItem) => selectedItem.value === item.value),
+      )
     }
-    return col
-  })
 
-  console.log('displayColumns', displayColumns.value)
+    const currentSelectedOptionsValue = currentSelectedOptions[0].value
+    const currentSelectedOptionsIsShow = currentSelectedOptions[0].isShow
 
+    displayColumns.value = displayColumns.value.map((col) => {
+      if (col.value === currentSelectedOptionsValue) {
+        col.isShow = !currentSelectedOptionsIsShow
+      }
+      return col
+    })
+  }
   selectedOptions.value = val
 }
 </script>
 <template>
-  {{ console.log('displayColumns.value', displayColumns) }}
   <DataTable
     :value="tableData"
     show-gridlines
@@ -142,6 +150,7 @@ const updateSelectedOptions = (val) => {
           :selection-limit="null"
           :show-clear="true"
           data-key="value"
+          :show-toggle-all="true"
         />
       </div>
     </template>
