@@ -1,6 +1,4 @@
 <script setup>
-// TODO: 欄位寬度
-// TODO: 選擇全部
 const tableData = ref([
   {
     id: 1,
@@ -9,6 +7,12 @@ const tableData = ref([
     department: '資訊部',
     phone: '0912-345-678',
     status: '在職',
+    address: '台北市信義區松仁路 100 號 10 樓，靠近捷運市政府站，交通便利。',
+    hireDate: '2020-03-15',
+    position: '資深前端工程師',
+    note: '張小明負責公司內部系統的前端開發，具備豐富的 Vue 與 React 經驗，團隊合作能力佳，經常主動協助同事解決技術問題。',
+    supervisor: '王大明',
+    extension: '1234',
   },
   {
     id: 2,
@@ -17,6 +21,12 @@ const tableData = ref([
     department: '業務部',
     phone: '0923-456-789',
     status: '在職',
+    address: '新北市板橋區文化路一段 200 號 8 樓，辦公室空間寬敞明亮。',
+    hireDate: '2019-07-01',
+    position: '業務經理',
+    note: '李小華專注於開發新客戶，擅長溝通協調，曾多次獲得年度業績獎。',
+    supervisor: '陳美麗',
+    extension: '5678',
   },
   {
     id: 3,
@@ -25,6 +35,12 @@ const tableData = ref([
     department: '人事部',
     phone: '0934-567-890',
     status: '休假',
+    address: '台北市大安區仁愛路四段 100 號，鄰近捷運大安站，環境舒適。',
+    hireDate: '2021-01-10',
+    position: '人事專員',
+    note: '王小美負責公司人事相關業務，細心負責，曾協助處理多起勞資糾紛，獲得同事一致好評。',
+    supervisor: '李明',
+    extension: '9012',
   },
   {
     id: 4,
@@ -33,6 +49,12 @@ const tableData = ref([
     department: '財務部',
     phone: '0945-678-901',
     status: '在職',
+    address: '新北市新莊區中正路 50 號，交通便利，鄰近捷運新莊站。',
+    hireDate: '2018-09-20',
+    position: '會計助理',
+    note: '陳小強學習能力強，對數字敏感，負責日常帳務處理，表現穩定。',
+    supervisor: '張大財',
+    extension: '3456',
   },
   {
     id: 5,
@@ -41,6 +63,12 @@ const tableData = ref([
     department: '行銷部',
     phone: '0956-789-012',
     status: '離職',
+    address: '台北市中山區南京東路一段 100 號，鄰近捷運中山站，交通便利。',
+    hireDate: '2022-05-01',
+    position: '行銷專員',
+    note: '林小芳在行銷部表現優異，曾策劃多場成功活動，獲得部門主管肯定。',
+    supervisor: '趙經理',
+    extension: '7890',
   },
 ])
 
@@ -51,12 +79,17 @@ const originalColumns = [
   { field: 'status', header: 'Status' },
   { field: 'department', header: 'Department' },
   { field: 'id', header: 'ID' },
+  { field: 'address', header: 'Address' },
+  { field: 'hireDate', header: 'Hire Date' },
+  { field: 'position', header: 'Position' },
+  { field: 'note', header: 'Note' },
+  { field: 'supervisor', header: 'Supervisor' },
+  { field: 'extension', header: 'Extension' },
 ]
 
 const originalSelectedOptions = originalColumns.map((col) => {
   return {
     isShow: false,
-    width: 100,
     label: col.header,
     value: col.field,
   }
@@ -157,65 +190,65 @@ onMounted(() => {
 })
 </script>
 <template>
-  {{ console.log('template displayColumns', displayColumns) }}
+  <div class="overflow-x-auto">
+    <DataTable
+      :value="tableData"
+      show-gridlines
+      striped-rows
+      reorderable-columns
+      @column-reorder="onColumnReorder"
+    >
+      <template #header>
+        <div class="flex flex-wrap items-end gap-4">
+          <div class="min-w-80 flex-1">
+            <label class="mb-2 block font-semibold text-gray-700">
+              選擇要顯示的欄位：
+            </label>
 
-  {{ console.log('template selectedOptions', selectedOptions) }}
-  <DataTable
-    :value="tableData"
-    show-gridlines
-    striped-rows
-    reorderable-columns
-    @column-reorder="onColumnReorder"
-  >
-    <template #header>
-      <div class="flex flex-wrap items-end gap-4">
-        <div class="min-w-80 flex-1">
-          <label class="mb-2 block font-semibold text-gray-700">
-            選擇要顯示的欄位：
-          </label>
-
-          <MultiSelect
-            v-model="selectedOptions"
-            :options="originalSelectedOptions"
-            option-label="label"
-            option-value="value"
-            display="chip"
-            placeholder="請選擇要顯示的欄位"
-            class="w-full"
-            :selection-limit="null"
-            :show-clear="true"
-            :show-toggle-all="true"
-            @update:model-value="updateSelectedOptions"
-          />
+            <MultiSelect
+              v-model="selectedOptions"
+              :options="originalSelectedOptions"
+              option-label="label"
+              option-value="value"
+              display="chip"
+              placeholder="請選擇要顯示的欄位"
+              class="w-full"
+              :selection-limit="null"
+              :show-clear="true"
+              :show-toggle-all="true"
+              @update:model-value="updateSelectedOptions"
+            />
+          </div>
+          <div class="flex gap-2">
+            <Button
+              icon="pi pi-save"
+              label="儲存欄位設定"
+              @click="saveSettings"
+              :disabled="selectedOptions.length === 0"
+              class="whitespace-nowrap"
+              v-tooltip.top="'儲存當前的欄位選擇和排序到瀏覽器本地儲存'"
+            />
+            <Button
+              icon="pi pi-refresh"
+              label="重置設定"
+              @click="resetSettings"
+              severity="secondary"
+              outlined
+              class="whitespace-nowrap"
+              v-tooltip.top="'清除儲存的設定並回到預設狀態'"
+            />
+          </div>
         </div>
-        <div class="flex gap-2">
-          <Button
-            icon="pi pi-save"
-            label="儲存欄位設定"
-            @click="saveSettings"
-            :disabled="selectedOptions.length === 0"
-            class="whitespace-nowrap"
-            v-tooltip.top="'儲存當前的欄位選擇和排序到瀏覽器本地儲存'"
-          />
-          <Button
-            icon="pi pi-refresh"
-            label="重置設定"
-            @click="resetSettings"
-            severity="secondary"
-            outlined
-            class="whitespace-nowrap"
-            v-tooltip.top="'清除儲存的設定並回到預設狀態'"
-          />
-        </div>
-      </div>
-    </template>
-    <Column
-      v-for="col in displayColumns"
-      :key="col.value"
-      :field="col.value"
-      :header="col.label"
-      :class="{ hidden: !col.isShow }"
-    />
-  </DataTable>
+      </template>
+      <Column
+        v-for="col in displayColumns"
+        :key="col.value"
+        :field="col.value"
+        :header="col.label"
+        :class="{ hidden: !col.isShow }"
+        :pt="{}"
+      />
+    </DataTable>
+  </div>
 </template>
 <style scoped></style>
