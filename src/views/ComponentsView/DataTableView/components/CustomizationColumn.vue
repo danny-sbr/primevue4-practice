@@ -114,9 +114,6 @@ const onColumnReorder = (event) => {
 }
 
 const updateSelectedOptions = (val) => {
-  console.log('updateSelectedOptions val:', val)
-  console.log('previous selectedOptions:', selectedOptions.value)
-
   // 判斷是否為全選操作
   const isSelectAll = val.length === originalSelectedOptions.length
 
@@ -167,7 +164,9 @@ const saveSettings = () => {
 }
 
 const resetSettings = () => {
-  console.log('resetSettings')
+  localStorage.removeItem(STORAGE_KEY)
+  displayColumns.value = originalSelectedOptions
+  selectedOptions.value = []
 }
 
 onMounted(() => {
